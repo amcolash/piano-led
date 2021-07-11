@@ -1,3 +1,4 @@
+import sys
 import time
 
 from rtmidi.midiutil import open_midiinput
@@ -10,9 +11,11 @@ MAX_KEY = 103
 TOTAL_KEYS = MAX_KEY - MIN_KEY
 
 NUM_LEDS = 144
+SPEED = 70
 
-color = [0,100,100]
-off = [0,0,0]
+leds = []
+for l in range(NUM_LEDS):
+  leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,100,100], 'state': False })
 
 class MidiInputHandler(object):
     def __init__(self, port):
@@ -35,11 +38,31 @@ class MidiInputHandler(object):
         led = int((key / (TOTAL_KEYS + 1)) * NUM_LEDS)
 
         if velocity > 0:
-          bus.write_i2c_block_data(I2C_ADDRESS, led, color)
-          bus.write_i2c_block_data(I2C_ADDRESS, led + 1, color)
+          leds[led]['state'] = True
+          leds[led + 1]['state'] = True
         else:
-          bus.write_i2c_block_data(I2C_ADDRESS, led, off)
-          bus.write_i2c_block_data(I2C_ADDRESS, led + 1, off)
+          leds[led]['state'] = False
+          leds[led + 1]['state'] = False
+
+def updateLeds():
+  try:
+    for l in range(NUM_LEDS):
+      led = leds[l]
+
+      for c in range(2):
+        led['previous'][c] = led['current'][c]
+
+        dir = 0
+        if led['state'] and led['current'][c] < led['target2'][c]: dir = 10
+        if not led['state'] and led['current'][c] > led['target1'][c]: dir = -10
+
+        led['current'][c] = max(0, min(255, led['current'][c] + dir))
+
+      if led['current'] != led['previous']:
+        # print(led['current'])
+          bus.write_i2c_block_data(I2C_ADDRESS, l, led['current'])
+  except OSError:
+    print(sys.exc_info()[0])
 
 midiin, port_name = open_midiinput(1)
 midiin.set_callback(MidiInputHandler(port_name))
@@ -51,7 +74,8 @@ try:
     # Just wait for keyboard interrupt,
     # everything else is handled via the input callback.
     while True:
-        time.sleep(1)
+      updateLeds()
+      time.sleep(0.005)
 except KeyboardInterrupt:
     print('')
 finally:
