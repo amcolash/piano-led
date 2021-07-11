@@ -1,8 +1,10 @@
 import time
 
-from rtmidi.midiutil import open_midioutput, open_midiinput
+from rtmidi.midiutil import open_midiinput
 from rtmidi.midiconstants import NOTE_OFF, NOTE_ON
+from smbus2 import SMBus
 
+I2C_ADDRESS = 8
 
 class MidiInputHandler(object):
     def __init__(self, port):
@@ -14,19 +16,19 @@ class MidiInputHandler(object):
         self._wallclock += deltatime
         print("[%s] @%0.6f %r" % (self.port, self._wallclock, message))
 
-        # with midiout:
-        #     note_on = [NOTE_ON, 60, 112] # channel 1, middle C, velocity 112
-        #     note_off = [NOTE_OFF, 60, 0]
-        #     midiout.send_message(note_on)
-        #     time.sleep(0.5)
-        #     midiout.send_message(note_off)
-        #     time.sleep(0.1)
-        #     midiout.send_message(message)
+        if message[2] > 0:
+          bus.write_i2c_block_data(I2C_ADDRESS, 0, [255,0,0])
+          bus.write_i2c_block_data(I2C_ADDRESS, 3, [0,255,0])
+          bus.write_i2c_block_data(I2C_ADDRESS, 6, [0,0,255])
+        else:
+          bus.write_i2c_block_data(I2C_ADDRESS, 0, [0,0,0])
+          bus.write_i2c_block_data(I2C_ADDRESS, 3, [0,0,0])
+          bus.write_i2c_block_data(I2C_ADDRESS, 6, [0,0,0])
 
-# midiout, port_name = open_midioutput(1)
 midiin, port_name = open_midiinput(1)
-
 midiin.set_callback(MidiInputHandler(port_name))
+
+bus = SMBus(1)
 
 print("Entering main loop. Press Control-C to exit.")
 try:
@@ -40,5 +42,3 @@ finally:
     print("Exit.")
     midiin.close_port()
     del midiin
-    # del midiout
-
