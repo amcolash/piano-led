@@ -5,6 +5,8 @@ from rtmidi.midiconstants import NOTE_OFF, NOTE_ON
 from smbus2 import SMBus
 
 I2C_ADDRESS = 8
+MIN_KEY = 28
+MAX_KEY = 103
 
 class MidiInputHandler(object):
     def __init__(self, port):
@@ -16,14 +18,12 @@ class MidiInputHandler(object):
         self._wallclock += deltatime
         print("[%s] @%0.6f %r" % (self.port, self._wallclock, message))
 
+        # print(message[1] - MIN_KEY)
+
         if message[2] > 0:
-          bus.write_i2c_block_data(I2C_ADDRESS, 0, [255,0,0])
-          bus.write_i2c_block_data(I2C_ADDRESS, 3, [0,255,0])
-          bus.write_i2c_block_data(I2C_ADDRESS, 6, [0,0,255])
+          bus.write_i2c_block_data(I2C_ADDRESS, (message[1] - MIN_KEY) * 3, [255,0,0])
         else:
-          bus.write_i2c_block_data(I2C_ADDRESS, 0, [0,0,0])
-          bus.write_i2c_block_data(I2C_ADDRESS, 3, [0,0,0])
-          bus.write_i2c_block_data(I2C_ADDRESS, 6, [0,0,0])
+          bus.write_i2c_block_data(I2C_ADDRESS, (message[1] - MIN_KEY) * 3, [0,0,0])
 
 midiin, port_name = open_midiinput(1)
 midiin.set_callback(MidiInputHandler(port_name))
