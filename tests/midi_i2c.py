@@ -25,11 +25,14 @@ class MidiInputHandler(object):
         # print("[%s] @%0.6f %r" % (self.port, self._wallclock, message))
 
         velocity = message[2]
-        key = (message[1] - MIN_KEY)
-        led = int((key / (TOTAL_KEYS + 1)) * NUM_LEDS)
 
-        print(key)
-        print(led)
+        # Normal LED Order
+        # key = (message[1] - MIN_KEY)
+
+        # Reverse LED Order
+        key = TOTAL_KEYS - (message[1] - MIN_KEY)
+
+        led = int((key / (TOTAL_KEYS + 1)) * NUM_LEDS)
 
         if velocity > 0:
           bus.write_i2c_block_data(I2C_ADDRESS, led, color)
