@@ -1,9 +1,10 @@
 import sys
 import time
 
-from rtmidi.midiutil import open_midiinput
-from rtmidi.midiconstants import NOTE_OFF, NOTE_ON
+import rtmidi
 from smbus2 import SMBus
+
+DEBUG_MIDI = False
 
 I2C_ADDRESS = 8
 MIN_KEY = 28
@@ -11,7 +12,7 @@ MAX_KEY = 103
 TOTAL_KEYS = MAX_KEY - MIN_KEY
 
 NUM_LEDS = 144
-SPEED = 10
+FADE_SPEED = 10
 
 leds = []
 for l in range(NUM_LEDS):
@@ -90,9 +91,9 @@ def updateLeds():
         dir = 0
         currentTarget = led['target2'] if led['state'] else led['target1']
 
-        if abs(led['current'][c] - currentTarget[c]) <= SPEED: led['current'][c] = currentTarget[c]
-        elif led['current'][c] < currentTarget[c]: led['current'][c] += SPEED
-        elif led['current'][c] > currentTarget[c]: led['current'][c] -= SPEED
+        if abs(led['current'][c] - currentTarget[c]) <= FADE_SPEED: led['current'][c] = currentTarget[c]
+        elif led['current'][c] < currentTarget[c]: led['current'][c] += FADE_SPEED
+        elif led['current'][c] > currentTarget[c]: led['current'][c] -= FADE_SPEED
 
         # led['current'][c] = max(0, min(255, led['current'][c] + dir))
 
@@ -123,21 +124,53 @@ def wheel(pos):
     pos -= 170
     return [0, pos * 3, 255 - pos * 3]
 
-midiin, port_name = open_midiinput(1)
-midiin.set_callback(MidiInputHandler(port_name))
+bus = None
+midi_in = rtmidi.MidiIn()
 
-bus = SMBus(1)
+def initMidi():
+  global midi_in, midiCount
+
+  try:
+    midiCount = 100
+
+    if midi_in.get_port_count() < 2:
+      if midi_in.is_port_open():
+        if DEBUG_MIDI: print('Closing old port')
+        midi_in.close_port()
+      else:
+        if DEBUG_MIDI: print('No Device')
+    else:
+      if not midi_in.is_port_open():
+        if DEBUG_MIDI: print('Init MIDI')
+        port_name = midi_in.open_port(1)
+        midi_in.set_callback(MidiInputHandler(port_name))
+      else:
+        if DEBUG_MIDI: print('MIDI Fine')
+  except:
+    print(sys.exc_info())
+
+def initI2C():
+  global bus
+  bus = SMBus(1)
+
+midiCount = 0
 
 print("Entering main loop. Press Control-C to exit.")
 try:
-    # Just wait for keyboard interrupt,
-    # everything else is handled via the input callback.
-    while True:
-      updateLeds()
-      time.sleep(0.005)
+  initI2C()
+
+  # Just wait for keyboard interrupt,
+  # everything else is handled via the input callback.
+  while True:
+    if midiCount == 0:
+      initMidi()
+    midiCount -= 1
+
+    updateLeds()
+    time.sleep(0.005)
 except KeyboardInterrupt:
     print('')
 finally:
     print("Exit.")
-    midiin.close_port()
-    del midiin
+    midi_in.close_port()
+    del midi_in
