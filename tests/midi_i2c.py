@@ -14,12 +14,6 @@ TOTAL_KEYS = MAX_KEY - MIN_KEY
 NUM_LEDS = 144
 FADE_SPEED = 10
 
-leds = []
-for l in range(NUM_LEDS):
-  leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': False, 'offCount': 0 })
-
-colorIndex = 0
-
 class MidiInputHandler(object):
   def __init__(self, port):
     self.port = port
@@ -47,10 +41,7 @@ class MidiInputHandler(object):
       leds[led + 1]['state'] = True
 
       # newColor = wheel(colorIndex)
-      newColor = hsv_to_rgb(colorIndex / 360, 1, 0.3)
-      newColor[0] = int(newColor[0])
-      newColor[1] = int(newColor[1])
-      newColor[2] = int(newColor[2])
+      newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
 
       # print(colorIndex)
       # print(newColor)
@@ -79,6 +70,10 @@ def hsv_to_rgb(h, s, v):
   if i == 3: return [p, q, v]
   if i == 4: return [t, p, v]
   if i == 5: return [v, p, q]
+
+def hsv_to_rgb_int(h, s, v):
+  rgb = hsv_to_rgb(h, s, v)
+  return [int(rgb[0]), int(rgb[1]), int(rgb[2])]
 
 def updateLeds():
   try:
@@ -112,20 +107,11 @@ def updateLeds():
           bus.write_i2c_block_data(I2C_ADDRESS, l, led['target1'])
 
   except OSError:
-    print(sys.exc_info()[0])
-
-def wheel(pos):
-  if pos < 85:
-    return [pos * 3, 255 - pos * 3, 0]
-  elif pos < 170:
-    pos -= 85
-    return [255 - pos * 3, 0, pos * 3]
-  else:
-    pos -= 170
-    return [0, pos * 3, 255 - pos * 3]
+    print(sys.exc_info())
 
 bus = None
 midi_in = rtmidi.MidiIn()
+midiCount = 0
 
 def initMidi():
   global midi_in, midiCount
@@ -153,7 +139,16 @@ def initI2C():
   global bus
   bus = SMBus(1)
 
-midiCount = 0
+
+leds = []
+
+# Make array of leds, set base of each to colors on rainbow
+for l in range(NUM_LEDS):
+  base = hsv_to_rgb_int(l / NUM_LEDS, 1, 0.005)
+
+  leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': base, 'target2': [0,0,0], 'state': False, 'offCount': 0 })
+
+colorIndex = 0
 
 print("Entering main loop. Press Control-C to exit.")
 try:
