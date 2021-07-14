@@ -36,25 +36,15 @@ bool firstKey = true;
 // function that executes whenever data is received from master on i2c
 void receiveEvent() {
   i = 0;
-  pixel = 0;
   
   while (Wire.available() > 0) {
-    
-    if (i == 0) {
+    if (i > 0 && Wire.available() >= 4) {
       pixel = Wire.read();
-      i++;
-
-      if (DEBUG) {
-        Serial.println("---");
-        Serial.print("pixel: ");
-        Serial.println(pixel);
-      }
-    } else if (Wire.available() >= 3) {
       leds[pixel][0] = Wire.read();
       leds[pixel][1] = Wire.read();
       leds[pixel][2] = Wire.read();
       
-      i += 3;
+      i += 4;
     } else {
       Wire.read();
       i++;
@@ -62,18 +52,18 @@ void receiveEvent() {
   }
 
   if (DEBUG) {
-   Serial.println("---");
+    Serial.println("---");
   
-  for (i = 0; i < NUM_LEDS; i++) {
-    Serial.print(i);
-    Serial.print(": [");
-    Serial.print(leds[i].r); 
-    Serial.print(", ");
-    Serial.print(leds[i].g);
-    Serial.print(", ");
-    Serial.print(leds[i].b);
-    Serial.println("]");
-  } 
+    for (i = 0; i < NUM_LEDS; i++) {
+      Serial.print(i);
+      Serial.print(": [");
+      Serial.print(leds[i].r);
+      Serial.print(", ");
+      Serial.print(leds[i].g);
+      Serial.print(", ");
+      Serial.print(leds[i].b);
+      Serial.println("]");
+    }
   }
 }
 
