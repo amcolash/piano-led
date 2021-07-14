@@ -77,6 +77,8 @@ def hsv_to_rgb_int(h, s, v):
 
 def updateLeds():
   try:
+    packet = []
+
     for l in range(NUM_LEDS):
       led = leds[l]
 
@@ -95,16 +97,27 @@ def updateLeds():
       if led['current'] != led['previous']:
         # print(led['current'])
         # print(led['previous'])
-        bus.write_i2c_block_data(I2C_ADDRESS, l, led['current'])
+        packet.append(l)
+        packet.extend(led['current'])
+        # bus.write_i2c_block_data(I2C_ADDRESS, l, led['current'])
 
       # Hacky bit of code to try and force LEDs off a few times after the final time they are pressed - in case a message gets missed so
       # they don't stay on forever
-      if led['current'][0] + led['current'][1] + led['current'][2] == 0:
-        if led['offCount'] == -1:
-          led['offCount'] = 3
-        elif led['offCount'] > 0:
-          led['offCount'] -= 1
-          bus.write_i2c_block_data(I2C_ADDRESS, l, led['target1'])
+
+      # if led['current'][0] + led['current'][1] + led['current'][2] == 0:
+      #   if led['offCount'] == -1:
+      #     led['offCount'] = 3
+      #   elif led['offCount'] > 0:
+      #     led['offCount'] -= 1
+      #     bus.write_i2c_block_data(I2C_ADDRESS, l, led['target1'])
+
+      if len(packet) == 4 * 7:
+        bus.write_i2c_block_data(I2C_ADDRESS, 0, packet)
+        packet = []
+
+    if len(packet) > 0:
+      # print(packet)
+      bus.write_i2c_block_data(I2C_ADDRESS, 0, packet)
 
   except OSError:
     print(sys.exc_info())
@@ -153,10 +166,11 @@ def initLeds():
   # Make array of leds, set base of each to colors on rainbow
   for l in range(NUM_LEDS):
     base = hsv_to_rgb_int(l / NUM_LEDS, 1, 0.005)
-    base = [0,0,0]
+    # base = [0,0,0]
 
     leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': base, 'target2': [0,0,0], 'state': False, 'offCount': 0 })
-    bus.write_i2c_block_data(I2C_ADDRESS, l, leds[l]['target1'])
+    # bus.write_i2c_block_data(I2C_ADDRESS, l, leds[l]['target1'])
+    # time.sleep(0.001)
 
 
 print("Entering main loop. Press Control-C to exit.")
