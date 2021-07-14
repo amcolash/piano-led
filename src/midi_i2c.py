@@ -1,3 +1,4 @@
+import math
 import sys
 import time
 
@@ -87,12 +88,23 @@ def updateLeds():
 
     ambient = time.time() - lastPlayed > 10
     wheel = wheel_bright if ambient else wheel_dim
+    wheel = wheel_dim
+
     # ambient = 0.015
 
     for l in range(NUM_LEDS):
       led = leds[l]
 
-      led['target1'] = wheel[(NUM_LEDS - l + cycle) % NUM_LEDS]
+      # rainbow
+      led['target1'] = wheel[int((NUM_LEDS - l + cycle * 0.05) % NUM_LEDS)]
+
+      # cycle
+      # led['target1'] = wheel[int(cycle % NUM_LEDS)]
+
+      # scroll rainbow
+      # seg = math.cos(((NUM_LEDS - l + cycle) / NUM_LEDS) * 3 * math.pi)
+      # if abs(seg) > 0.95: led['target1'] = wheel[int(cycle / 2 % NUM_LEDS)]
+      # else: led['target1'] = [0, 0, 0]
 
       for c in range(3):
         led['previous'][c] = led['current'][c]
@@ -107,6 +119,8 @@ def updateLeds():
       if led['current'] != led['previous']:
         packet.append(l)
         packet.extend(led['current'])
+
+      # TODO: Send LED data to over usb serial instead of i2c for speed?
 
       # Hacky bit of code to try and force LEDs off a few times after the final time they are pressed - in case a message gets missed so
       # they don't stay on forever
@@ -124,12 +138,9 @@ def updateLeds():
         packet = []
 
     if len(packet) > 0:
-      # print(packet)
       bus.write_i2c_block_data(I2C_ADDRESS, 0, packet)
 
-    if ambient: cycle += 1
-    else: cycle += 50
-    # cycle += 1
+    if ambient: cycle += 0.15
 
   except OSError:
     print(sys.exc_info())
@@ -174,7 +185,7 @@ colorIndex = 0
 def initLeds():
   global leds
   for l in range(NUM_LEDS):
-    leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': False, 'offCount': 0 })
+    leds.append({ 'current': [-1,-1,-1], 'previous': [-1,-1,-1], 'target1': [0,0,0], 'target2': [0,0,0], 'state': False, 'offCount': 0 })
 
 
 print("Entering main loop. Press Control-C to exit.")
