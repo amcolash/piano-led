@@ -92,11 +92,20 @@ def updateLeds():
 
     # ambient = 0.015
 
+    xpos = math.sin((cycle % NUM_LEDS) / NUM_LEDS * math.pi) * NUM_LEDS
+
     for l in range(NUM_LEDS):
       led = leds[l]
 
+      # color
+      led['target1'] = [0,0,0]
+
+      # bounce
+      # if abs(l - xpos) < 5: led['target1'] = wheel[int(cycle / 10 % NUM_LEDS)]
+      # else: led['target1'] = [0,0,0]
+
       # rainbow
-      led['target1'] = wheel[int((NUM_LEDS - l + cycle * 0.05) % NUM_LEDS)]
+      # led['target1'] = wheel[int((NUM_LEDS - l + cycle * 0.15) % NUM_LEDS)]
 
       # cycle
       # led['target1'] = wheel[int(cycle % NUM_LEDS)]
