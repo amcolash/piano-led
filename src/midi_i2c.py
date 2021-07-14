@@ -23,7 +23,7 @@ class MidiInputHandler(object):
     self._wallclock = time.time()
 
   def __call__(self, event, data=None):
-    global colorIndex, lastPlayed
+    global colorIndex, lastPlayed, cycle
 
     message, deltatime = event
     self._wallclock += deltatime
@@ -43,7 +43,14 @@ class MidiInputHandler(object):
       leds[led]['state'] = True
       leds[led + 1]['state'] = True
 
-      newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
+      # next color in cycle
+      # newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
+
+      # rainbow bright
+      # newColor = wheel_bright[led]
+
+      # rainbow cycle
+      newColor = wheel_bright[int((NUM_LEDS - led + cycle * 2) % NUM_LEDS)]
 
       leds[led]['target2'] = newColor
       leds[led + 1]['target2'] = newColor
@@ -98,14 +105,14 @@ def updateLeds():
       led = leds[l]
 
       # color
-      led['target1'] = [0,0,0]
+      # led['target1'] = [0,0,0]
 
       # bounce
       # if abs(l - xpos) < 5: led['target1'] = wheel[int(cycle / 10 % NUM_LEDS)]
       # else: led['target1'] = [0,0,0]
 
       # rainbow
-      # led['target1'] = wheel[int((NUM_LEDS - l + cycle * 0.15) % NUM_LEDS)]
+      led['target1'] = wheel[int((NUM_LEDS - l + cycle * 2) % NUM_LEDS)]
 
       # cycle
       # led['target1'] = wheel[int(cycle % NUM_LEDS)]
