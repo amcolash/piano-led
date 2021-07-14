@@ -14,13 +14,15 @@ TOTAL_KEYS = MAX_KEY - MIN_KEY
 NUM_LEDS = 144
 FADE_SPEED = 10
 
+lastPlayed = 0
+
 class MidiInputHandler(object):
   def __init__(self, port):
     self.port = port
     self._wallclock = time.time()
 
   def __call__(self, event, data=None):
-    global colorIndex
+    global colorIndex, lastPlayed
 
     message, deltatime = event
     self._wallclock += deltatime
@@ -40,11 +42,7 @@ class MidiInputHandler(object):
       leds[led]['state'] = True
       leds[led + 1]['state'] = True
 
-      # newColor = wheel(colorIndex)
       newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
-
-      # print(colorIndex)
-      # print(newColor)
 
       leds[led]['target2'] = newColor
       leds[led + 1]['target2'] = newColor
@@ -52,10 +50,9 @@ class MidiInputHandler(object):
       leds[led]['offCount'] = -1
       leds[led + 1]['offCount'] = -1
 
-      # print(colorIndex)
-      # print(wheel(colorIndex))
-
       colorIndex = (colorIndex + 10) % 360
+
+      lastPlayed = time.time()
     else:
       leds[led]['state'] = False
       leds[led + 1]['state'] = False
@@ -75,12 +72,27 @@ def hsv_to_rgb_int(h, s, v):
   rgb = hsv_to_rgb(h, s, v)
   return [int(rgb[0]), int(rgb[1]), int(rgb[2])]
 
+wheel_bright = []
+wheel_dim = []
+for l in range(NUM_LEDS):
+  wheel_bright.append(hsv_to_rgb_int(l / NUM_LEDS, 1, 0.2))
+  wheel_dim.append(hsv_to_rgb_int(l / NUM_LEDS, 1, 0.015))
+
+cycle = 0
 def updateLeds():
+  global cycle
   try:
+    p = 0
     packet = []
+
+    ambient = time.time() - lastPlayed > 10
+    wheel = wheel_bright if ambient else wheel_dim
+    # ambient = 0.015
 
     for l in range(NUM_LEDS):
       led = leds[l]
+
+      led['target1'] = wheel[(NUM_LEDS - l + cycle) % NUM_LEDS]
 
       for c in range(3):
         led['previous'][c] = led['current'][c]
@@ -92,24 +104,20 @@ def updateLeds():
         elif led['current'][c] < currentTarget[c]: led['current'][c] += FADE_SPEED
         elif led['current'][c] > currentTarget[c]: led['current'][c] -= FADE_SPEED
 
-        # led['current'][c] = max(0, min(255, led['current'][c] + dir))
-
       if led['current'] != led['previous']:
-        # print(led['current'])
-        # print(led['previous'])
         packet.append(l)
         packet.extend(led['current'])
-        # bus.write_i2c_block_data(I2C_ADDRESS, l, led['current'])
 
       # Hacky bit of code to try and force LEDs off a few times after the final time they are pressed - in case a message gets missed so
       # they don't stay on forever
-
-      # if led['current'][0] + led['current'][1] + led['current'][2] == 0:
+      # elif led['current'][0] == led['target1'][0] and led['current'][1] == led['target1'][1] and led['current'][2] == led['target1'][2]:
       #   if led['offCount'] == -1:
       #     led['offCount'] = 3
       #   elif led['offCount'] > 0:
       #     led['offCount'] -= 1
-      #     bus.write_i2c_block_data(I2C_ADDRESS, l, led['target1'])
+
+      #     packet.append(l)
+      #     packet.extend(led['current'])
 
       if len(packet) == 4 * 7:
         bus.write_i2c_block_data(I2C_ADDRESS, 0, packet)
@@ -118,6 +126,10 @@ def updateLeds():
     if len(packet) > 0:
       # print(packet)
       bus.write_i2c_block_data(I2C_ADDRESS, 0, packet)
+
+    if ambient: cycle += 1
+    else: cycle += 50
+    # cycle += 1
 
   except OSError:
     print(sys.exc_info())
@@ -156,21 +168,13 @@ def initI2C():
   global bus
   bus = SMBus(1)
 
-
 leds = []
 colorIndex = 0
 
 def initLeds():
-  global bus, leds
-
-  # Make array of leds, set base of each to colors on rainbow
+  global leds
   for l in range(NUM_LEDS):
-    base = hsv_to_rgb_int(l / NUM_LEDS, 1, 0.005)
-    # base = [0,0,0]
-
-    leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': base, 'target2': [0,0,0], 'state': False, 'offCount': 0 })
-    # bus.write_i2c_block_data(I2C_ADDRESS, l, leds[l]['target1'])
-    # time.sleep(0.001)
+    leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': False, 'offCount': 0 })
 
 
 print("Entering main loop. Press Control-C to exit.")
