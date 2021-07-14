@@ -113,6 +113,10 @@ bus = None
 midi_in = rtmidi.MidiIn()
 midiCount = 0
 
+midi_out = rtmidi.MidiOut()
+for port_name in midi_out.get_ports():
+    print(port_name)
+
 def initMidi():
   global midi_in, midiCount
 
@@ -141,18 +145,24 @@ def initI2C():
 
 
 leds = []
-
-# Make array of leds, set base of each to colors on rainbow
-for l in range(NUM_LEDS):
-  base = hsv_to_rgb_int(l / NUM_LEDS, 1, 0.005)
-
-  leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': base, 'target2': [0,0,0], 'state': False, 'offCount': 0 })
-
 colorIndex = 0
+
+def initLeds():
+  global bus, leds
+
+  # Make array of leds, set base of each to colors on rainbow
+  for l in range(NUM_LEDS):
+    base = hsv_to_rgb_int(l / NUM_LEDS, 1, 0.005)
+    base = [0,0,0]
+
+    leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': base, 'target2': [0,0,0], 'state': False, 'offCount': 0 })
+    bus.write_i2c_block_data(I2C_ADDRESS, l, leds[l]['target1'])
+
 
 print("Entering main loop. Press Control-C to exit.")
 try:
   initI2C()
+  initLeds()
 
   # Just wait for keyboard interrupt,
   # everything else is handled via the input callback.
