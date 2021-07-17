@@ -1,7 +1,7 @@
 #include <FastLED.h>
 #include <Wire.h>
 
-#define NUM_LEDS 144
+#define NUM_LEDS 148
 #define LED_PIN 11
 
 CRGB leds[NUM_LEDS];
@@ -11,6 +11,7 @@ CRGB leds[NUM_LEDS];
 # define DEBUG false
 
 void setup() {
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 1000);
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
   FastLED.clear(true);
 
@@ -23,6 +24,12 @@ void setup() {
     FastLED.show();
     delay(150);
   }
+
+  leds[143] = CRGB::Red;
+  leds[144] = CRGB::Green;
+  leds[145] = CRGB::Blue;
+  leds[146] = CRGB::Red;
+  leds[147] = CRGB::Green;
   
   if (DEBUG) Serial.begin(9600);
 
