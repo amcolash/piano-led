@@ -1,0 +1,11 @@
+[Unit]
+Description=Piano LED
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/bin/python3 /home/pi/piano-led/src/midi_pi.py
+
+[Install]
+WantedBy=multi-user.target
