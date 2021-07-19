@@ -8,6 +8,8 @@ import rtmidi
 from rpi_ws281x import PixelStrip, Color
 from smbus2 import SMBus
 
+import palette
+
 DEBUG_MIDI = False
 
 I2C_ADDRESS = 8
@@ -15,7 +17,7 @@ MIN_KEY = 28
 MAX_KEY = 103
 TOTAL_KEYS = MAX_KEY - MIN_KEY
 
-FADE_SPEED = 10
+FADE_SPEED = 5
 
 # LED strip configuration:
 LED_COUNT = 148        # Number of LED pixels.
@@ -61,8 +63,11 @@ class MidiInputHandler(object):
       # newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
       # colorIndex = (colorIndex + 10) % 360
 
-      # brighten current
-      newColor = [c * 50 for c in leds[led]['target1']]
+      # brighten current color (assume max ambient rgb of about 20)
+      newColor = [min(255, c * 10) for c in leds[led]['target1']]
+
+      # print(leds[led]['target1'])
+      # print(newColor)
 
       leds[led]['target2'] = newColor
       leds[led + 1]['target2'] = newColor
@@ -90,11 +95,7 @@ def hsv_to_rgb_int(h, s, v):
   rgb = hsv_to_rgb(h, s, v)
   return [int(rgb[0]), int(rgb[1]), int(rgb[2])]
 
-wheel_bright = []
-wheel_dim = []
-for l in range(LED_COUNT):
-  wheel_bright.append(hsv_to_rgb_int(l / LED_COUNT, 1, 0.2))
-  wheel_dim.append(hsv_to_rgb_int(l / LED_COUNT, 1, 0.015))
+pal = palette.generatePalette(palette.DEFAULT, LED_COUNT)
 
 cycle = 0
 def updateLeds():
@@ -103,7 +104,6 @@ def updateLeds():
     start = time.time()
 
     ambient = time.time() - lastPlayed > 10
-    wheel = wheel_dim
 
     hour = datetime.datetime.now(pytz.timezone('America/Los_Angeles')).hour
 
@@ -118,22 +118,25 @@ def updateLeds():
       # led['target1'] = [0,0,0]
 
       # bounce
-      # if abs(l - xpos) < 5: led['target1'] = wheel[int(cycle / 10 % LED_COUNT)]
+      # if abs(l - xpos) < 5: led['target1'] = pal[int(cycle / 10 % LED_COUNT)]
       # else: led['target1'] = [0,0,0]
 
-      # rainbow
-      led['target1'] = wheel[int((LED_COUNT - l + cycle * 2) % LED_COUNT)]
+      # palette
+      # led['target1'] = pal[l]
 
-      # cycle
-      # led['target1'] = wheel[int(cycle % LED_COUNT)]
+      # palette cycle
+      led['target1'] = pal[int((LED_COUNT - l + cycle * 2) % LED_COUNT)]
+
+      # palette cycle single color
+      # led['target1'] = pal[int(cycle % LED_COUNT)]
 
       # scroll rainbow
       # seg = math.cos(((LED_COUNT - l + cycle) / LED_COUNT) * 3 * math.pi)
-      # if abs(seg) > 0.95: led['target1'] = wheel[int(cycle / 2 % LED_COUNT)]
+      # if abs(seg) > 0.95: led['target1'] = pal[int(cycle / 2 % LED_COUNT)]
       # else: led['target1'] = [0, 0, 0]
 
       # keep LEDs off at night
-      if hour > 1 and hour < 7:
+      if hour >= 1 and hour < 7 and ambient:
         led['target1'] = [0,0,0]
 
       currentTarget = led['target2'] if led['state'] else led['target1']
@@ -159,14 +162,6 @@ def updateLeds():
 bus = None
 midi_in = rtmidi.MidiIn()
 midiCount = 0
-
-# midi_out = rtmidi.MidiOut()
-# for i, port in enumerate(midi_out.get_ports()):
-#   print(port)
-#   if port.startswith('f_midi'):
-#     print('Connecting to usb gadget')
-#     midi_out.open_port(i)
-#     break
 
 def logTime(start, label):
   print(label + ': ' + str((time.time() - start) * 1000))
