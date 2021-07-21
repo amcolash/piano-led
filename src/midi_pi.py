@@ -45,8 +45,16 @@ class PlayMode(Enum):
 
 PLAYING_MODE = PlayMode.RIPPLE
 
+# Scalar of how much to brighten colors with BRIGHTEN_CURRENT
+BRIGHTEN_AMOUNT = 10
+
+# Number of keys to ripple from
+RIPPLE_KEYS = 7
+# Scalar of how much to brighten colors with RIPPLE_BRIGHTNESS
+RIPPLE_BRIGHTNESS = 4
+
 # Color Configuration
-CURRENT_PALETTE = palettes.Fire
+CURRENT_PALETTE = palettes.Ocean
 
 # Ambient Configuration
 NIGHT_MODE_ENABLED = True
@@ -63,13 +71,10 @@ class AmbientMode(Enum):
   PALETTE_CYCLE_SINGLE = auto()
   PALETTE_SCROLL = auto()
 
-AMBIENT_MODE = AmbientMode.OFF
+AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
 
 # Color for single color mode
 AMBIENT_COLOR = [0,20,0]
-
-# Number of keys to ripple from
-RIPPLE_KEYS = 7
 
 CYCLE_SPEED = 0.15
 
@@ -107,7 +112,7 @@ class MidiInputHandler(object):
     try:
       bus.write_i2c_block_data(I2C_ADDRESS, 0, message)
     except:
-      if DEBUG_I2C: print(str(datetime.datetime.now(tz)) + ': ' + str(sys.exc_info()))
+      if DEBUG_I2C: print(niceTime() + ': ' + str(sys.exc_info()))
 
     velocity = message[2]
 
@@ -128,7 +133,7 @@ class MidiInputHandler(object):
 
     # brighten current color (assume max ambient rgb of about 20)
     elif PLAYING_MODE == PlayMode.BRIGHTEN_CURRENT:
-      newColor = [min(255, c * 10) for c in leds[led]['target1']]
+      newColor = [min(255, c * BRIGHTEN_AMOUNT) for c in leds[led]['target1']]
 
     elif PLAYING_MODE == PlayMode.RIPPLE:
       # toUpdate = []
@@ -147,7 +152,7 @@ class MidiInputHandler(object):
           else:
             leds[i]['state'].remove(led)
         except:
-          print(str(time.time()) + ': ' + str(sys.exc_info()))
+          print(niceTime() + ': ' + str(sys.exc_info()))
 
         if len(leds[i]['state']) == 0:
           leds[i]['ripple'] = False
@@ -155,17 +160,11 @@ class MidiInputHandler(object):
         # print(str(i) + ', ' + str(leds[i]['state']))
 
         if PLAYING_MODE == PlayMode.RIPPLE:
-          newColor = [min(255, c * 3) for c in palette[i]]
+          if leds[i]['target1'] != [0,0,0]: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in leds[i]['target1']]
+          else: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in palette[i]]
 
         leds[i]['target2'] = newColor
         leds[i]['playTime'] = lastPlayed
-
-        # if velocity == 0 and PLAYING_MODE == PlayMode.RIPPLE:
-        #   dim = True
-        #   for j in range(-RIPPLE_KEYS + led, RIPPLE_KEYS + 1 + led):
-        #     if j >= 0 and j < LED_COUNT and leds[j]['state']:
-        #       dim = False
-        #   if dim: leds[i]['target1'] = [0,0,0]
 
 def hsv_to_rgb(h, s, v):
   if s == 0.0: v*=255; return [v, v, v]
@@ -203,35 +202,37 @@ def updateLeds():
 
       since = time.time() - led['playTime']
 
-      # color
-      if AMBIENT_MODE == AmbientMode.SINGLE_COLOR:
-        led['target1'] = AMBIENT_COLOR
+      # only update target1 when ambient mode is active - otherwise skip
+      if ambient:
+        # color
+        if AMBIENT_MODE == AmbientMode.SINGLE_COLOR:
+          led['target1'] = AMBIENT_COLOR
 
-      # bounce
-      elif AMBIENT_MODE == AmbientMode.BOUNCE:
-        if abs(l - xpos) < 5: led['target1'] = palette[int(cycle / 10 % LED_COUNT)]
-        else: led['target1'] = [0,0,0]
+        # bounce
+        elif AMBIENT_MODE == AmbientMode.BOUNCE:
+          if abs(l - xpos) < 5: led['target1'] = palette[int(cycle / 10 % LED_COUNT)]
+          else: led['target1'] = [0,0,0]
 
-      # palette
-      elif AMBIENT_MODE == AmbientMode.PALETTE:
-        led['target1'] = palette[l]
+        # palette
+        elif AMBIENT_MODE == AmbientMode.PALETTE:
+          led['target1'] = palette[l]
 
-      # palette cycle
-      elif AMBIENT_MODE == AmbientMode.PALETTE_CYCLE:
-        led['target1'] = palette[int((LED_COUNT - l + cycle * 2)) % LED_COUNT]
+        # palette cycle
+        elif AMBIENT_MODE == AmbientMode.PALETTE_CYCLE:
+          led['target1'] = palette[int((LED_COUNT - l + cycle * 2)) % LED_COUNT]
 
-      # palette cycle single color
-      elif AMBIENT_MODE == AmbientMode.PALETTE_CYCLE_SINGLE:
-        led['target1'] = palette[int(cycle) % LED_COUNT]
+        # palette cycle single color
+        elif AMBIENT_MODE == AmbientMode.PALETTE_CYCLE_SINGLE:
+          led['target1'] = palette[int(cycle) % LED_COUNT]
 
-      # scroll palette
-      elif AMBIENT_MODE == AmbientMode.PALETTE_SCROLL:
-        seg = math.cos(((LED_COUNT - l + cycle) / LED_COUNT) * 3 * math.pi)
-        if abs(seg) > 0.95: led['target1'] = palette[int(cycle / 2 % LED_COUNT)]
-        else: led['target1'] = [0, 0, 0]
+        # scroll palette
+        elif AMBIENT_MODE == AmbientMode.PALETTE_SCROLL:
+          seg = math.cos(((LED_COUNT - l + cycle) / LED_COUNT) * 3 * math.pi)
+          if abs(seg) > 0.95: led['target1'] = palette[int(cycle / 2 % LED_COUNT)]
+          else: led['target1'] = [0, 0, 0]
 
       # Ripple
-      if PLAYING_MODE == PlayMode.RIPPLE and l in led['state']:
+      if not ambient and PLAYING_MODE == PlayMode.RIPPLE and l in led['state']:
         # print(l)
         pos = int(abs(math.sin(since * 10)) * RIPPLE_KEYS)
         toUpdate = [l + pos, l - pos]
@@ -252,14 +253,14 @@ def updateLeds():
       if led['current'] == currentTarget:
         continue
 
-      # for c in range(3):
-      #   if abs(led['current'][c] - currentTarget[c]) <= FADE_SPEED: led['current'][c] = currentTarget[c]
-      #   elif led['current'][c] < currentTarget[c]: led['current'][c] = int((led['current'][c] + 1) * 1.25)
-      #   elif led['current'][c] > currentTarget[c]: led['current'][c] = int((led['current'][c] + 1) * 0.65)
-      #   elif led['current'][c] < currentTarget[c]: led['current'][c] += FADE_SPEED
-      #   elif led['current'][c] > currentTarget[c]: led['current'][c] -= FADE_SPEED
+      for c in range(3):
+        if abs(led['current'][c] - currentTarget[c]) <= FADE_SPEED: led['current'][c] = currentTarget[c]
+        elif led['current'][c] < currentTarget[c]: led['current'][c] = min(currentTarget[c], int((led['current'][c] + 1) * 1.25))
+        elif led['current'][c] > currentTarget[c]: led['current'][c] = max(currentTarget[c], int((led['current'][c] + 1) * 0.75))
+        # elif led['current'][c] < currentTarget[c]: led['current'][c] += FADE_SPEED
+        # elif led['current'][c] > currentTarget[c]: led['current'][c] -= FADE_SPEED
 
-      led['current'] = palettes.lerpColor(led['current'], currentTarget, 0.2)
+      # led['current'] = palettes.lerpColor(led['current'], currentTarget, 0.2)
 
       if led['current'] != led['previous']:
         strip.setPixelColor(l, Color(int(led['current'][0]), int(led['current'][1]), int(led['current'][2])))
@@ -274,7 +275,7 @@ def updateLeds():
       cycle -= LED_COUNT
 
   except OSError:
-    print(sys.exc_info())
+    print(niceTime() + ': ' + sys.exc_info())
 
 def logTime(start, label):
   print(label + ': ' + str((time.time() - start) * 1000))
@@ -311,7 +312,10 @@ def initLeds():
     leds.append({ 'current': [-1,-1,-1], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': [], 'playTime': 0, 'ripple': False })
   strip.begin()
 
-print(str(datetime.datetime.now(tz).replace(microsecond=0)).replace('-07:00', '') + ': Entering main loop. Press Control-C to exit.')
+def niceTime():
+  return str(datetime.datetime.now(tz).replace(microsecond=0)).replace('-07:00', '')
+
+print(niceTime() + ': Entering main loop. Press Control-C to exit.')
 try:
   initI2C()
   initLeds()

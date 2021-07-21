@@ -21,13 +21,19 @@ Pink = [
   [1, [250,30,60]],
 ]
 
+Ocean = [
+  [0, [30,170,180]],
+  [0.33, [0,20,250]],
+  [0.66, [30,250,50]],
+  [1, [30,170,180]],
+]
+
 MAX_BRIGHTNESS = 20
 BRIGHTNESS_SCALAR = MAX_BRIGHTNESS / 255
 
 def lerp(a, b, t, scaled=False):
-  value = a + (b-a) * t
-  if scaled: return int(value * BRIGHTNESS_SCALAR)
-  else: return int(value)
+  if scaled: return int((a + (b-a) * t) * BRIGHTNESS_SCALAR)
+  else: return int(a + (b-a) * t)
 
 def lerpColor(a, b, t, scaled=False):
   return [lerp(a[0], b[0], t, scaled), lerp(a[1], b[1], t, scaled), lerp(a[2], b[2], t, scaled)]
