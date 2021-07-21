@@ -1,5 +1,8 @@
+import cProfile
 import datetime
+from enum import Enum, auto
 import math
+import pstats
 import pytz
 import sys
 import time
@@ -22,6 +25,7 @@ LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 # Base Configuration
 I2C_ADDRESS = 8
 DEBUG_MIDI = False
+PROFILING = False
 
 # Key Configuration
 MIN_KEY = 28
@@ -32,30 +36,37 @@ TOTAL_KEYS = MAX_KEY - MIN_KEY
 FADE_SPEED = 5
 
 # PLAYING_MODE Options
-CYCLE_COLORS = 'CYCLE_COLORS'
-BRIGHTEN_CURRENT = 'BRIGHTEN_CURRENT'
+class PlayMode(Enum):
+  NONE = auto()
+  CYCLE_COLORS = auto()
+  BRIGHTEN_CURRENT = auto()
 
-PLAYING_MODE = BRIGHTEN_CURRENT
+PLAYING_MODE = PlayMode.BRIGHTEN_CURRENT
 
 # Color Configuration
 CURRENT_PALETTE = palettes.Pink
 
 # Ambient Configuration
-NIGHT_MODE_ENABLED = False
+NIGHT_MODE_ENABLED = True
 NIGHT_MODE_START_HOUR = 1 # Starting hour when night mode begins (inclusive)
 NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
 
 # AMBIENT_MODE Options
-SINGLE_COLOR = 'SINGLE_COLOR'
-BOUNCE = 'BOUNCE'
-PALETTE = 'PALETTE'
-PALETTE_CYCLE = 'PALETTE_CYCLE'
-PALETTE_CYCLE_SINGLE = 'PALETTE_CYCLE_SINGLE'
-PALETTE_SCROLL = 'PALETTE_SCROLL'
+class AmbientMode(Enum):
+  OFF = auto()
+  SINGLE_COLOR = auto()
+  BOUNCE = auto()
+  PALETTE = auto()
+  PALETTE_CYCLE = auto()
+  PALETTE_CYCLE_SINGLE = auto()
+  PALETTE_SCROLL = auto()
 
-AMBIENT_MODE = PALETTE_CYCLE
+AMBIENT_MODE = AmbientMode.OFF
 
-CYCLE_SPEED = 0.1
+# Color for single color mode
+AMBIENT_COLOR = [0,20,0]
+
+CYCLE_SPEED = 0.15
 
 # Global Vars
 lastPlayed = 0
@@ -70,6 +81,8 @@ midiCount = 0
 
 leds = []
 strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+
+tz = pytz.timezone('America/Los_Angeles')
 
 # Begin Code
 
@@ -89,7 +102,7 @@ class MidiInputHandler(object):
     try:
       bus.write_i2c_block_data(I2C_ADDRESS, 0, message)
     except:
-      print(sys.exc_info())
+      print(str(time.time()) + ': ' + str(sys.exc_info()))
 
     velocity = message[2]
 
@@ -102,13 +115,17 @@ class MidiInputHandler(object):
       leds[led]['state'] = True
       leds[led + 1]['state'] = True
 
+      # do nothing
+      if PLAYING_MODE == PlayMode.NONE:
+        newColor = leds[led]['target2']
+
       # next color in cycle
-      if PLAYING_MODE == CYCLE_COLORS:
+      elif PLAYING_MODE == PlayMode.CYCLE_COLORS:
         newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
         colorIndex = (colorIndex + 10) % 360
 
       # brighten current color (assume max ambient rgb of about 20)
-      if PLAYING_MODE == BRIGHTEN_CURRENT:
+      elif PLAYING_MODE == PlayMode.BRIGHTEN_CURRENT:
         newColor = [min(255, c * 10) for c in leds[led]['target1']]
 
       leds[led]['target2'] = newColor
@@ -142,9 +159,9 @@ def updateLeds():
   try:
     start = time.time()
     ambient = time.time() - lastPlayed > 10
-    hour = datetime.datetime.now(pytz.timezone('America/Los_Angeles')).hour
+    hour = datetime.datetime.now(tz).hour
 
-    if AMBIENT_MODE == BOUNCE:
+    if AMBIENT_MODE == AmbientMode.BOUNCE:
       xpos = math.sin((cycle % LED_COUNT) / LED_COUNT * math.pi) * LED_COUNT
 
     dirty = False
@@ -152,31 +169,37 @@ def updateLeds():
     for l in range(LED_COUNT):
       led = leds[l]
 
-      led['previous'] = led['current'].copy()
+      led['previous'][0] = led['current'][0]
+      led['previous'][1] = led['current'][1]
+      led['previous'][2] = led['current'][2]
 
-      # color
-      if AMBIENT_MODE == SINGLE_COLOR:
+      # off
+      if AMBIENT_MODE == AmbientMode.OFF:
         led['target1'] = [0,0,0]
 
+      # color
+      elif AMBIENT_MODE == AmbientMode.SINGLE_COLOR:
+        led['target1'] = AMBIENT_COLOR
+
       # bounce
-      if AMBIENT_MODE == BOUNCE:
+      elif AMBIENT_MODE == AmbientMode.BOUNCE:
         if abs(l - xpos) < 5: led['target1'] = palette[int(cycle / 10 % LED_COUNT)]
         else: led['target1'] = [0,0,0]
 
       # palette
-      if AMBIENT_MODE == PALETTE:
+      elif AMBIENT_MODE == AmbientMode.PALETTE:
         led['target1'] = palette[l]
 
       # palette cycle
-      if AMBIENT_MODE == PALETTE_CYCLE:
-        led['target1'] = palette[int((LED_COUNT - l + cycle * 2) % LED_COUNT)]
+      elif AMBIENT_MODE == AmbientMode.PALETTE_CYCLE:
+        led['target1'] = palette[int((LED_COUNT - l + cycle * 2)) % LED_COUNT]
 
       # palette cycle single color
-      if AMBIENT_MODE == PALETTE_CYCLE_SINGLE:
-        led['target1'] = palette[int(cycle % LED_COUNT)]
+      elif AMBIENT_MODE == AmbientMode.PALETTE_CYCLE_SINGLE:
+        led['target1'] = palette[int(cycle) % LED_COUNT]
 
       # scroll palette
-      if AMBIENT_MODE == PALETTE_SCROLL:
+      elif AMBIENT_MODE == AmbientMode.PALETTE_SCROLL:
         seg = math.cos(((LED_COUNT - l + cycle) / LED_COUNT) * 3 * math.pi)
         if abs(seg) > 0.95: led['target1'] = palette[int(cycle / 2 % LED_COUNT)]
         else: led['target1'] = [0, 0, 0]
@@ -194,6 +217,8 @@ def updateLeds():
         elif led['current'][c] < currentTarget[c]: led['current'][c] += FADE_SPEED
         elif led['current'][c] > currentTarget[c]: led['current'][c] -= FADE_SPEED
 
+      # led['current'] = palettes.lerpColor(led['current'], currentTarget, 0.1)
+
       if led['current'] != led['previous']:
         strip.setPixelColor(l, Color(led['current'][0], led['current'][1], led['current'][2]))
         dirty = True
@@ -203,6 +228,8 @@ def updateLeds():
 
     # logTime(start, 'updateLeds')
     if ambient: cycle += CYCLE_SPEED
+    if cycle > LED_COUNT:
+      cycle -= LED_COUNT
 
   except OSError:
     print(sys.exc_info())
@@ -239,7 +266,7 @@ def initMidi():
 def initLeds():
   global leds, strip
   for l in range(LED_COUNT):
-    leds.append({ 'current': [0,0,0], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': False, 'offCount': 0 })
+    leds.append({ 'current': [-1,-1,-1], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': False, 'offCount': 0 })
   strip.begin()
 
 print("Entering main loop. Press Control-C to exit.")
@@ -254,11 +281,26 @@ try:
       initMidi()
     midiCount -= 1
 
+    if PROFILING:
+      profile = cProfile.Profile()
+      profile.enable()
+
+      i = 0
+      while i < 500:
+        updateLeds()
+        i += 1
+
+      profile.disable()
+      ps = pstats.Stats(profile)
+      ps.print_stats()
+
+      break
+
     updateLeds()
     # time.sleep(0.0005)
 except KeyboardInterrupt:
     print('')
 finally:
-    print("Exit.")
+    print('Exit')
     midi_in.close_port()
     del midi_in

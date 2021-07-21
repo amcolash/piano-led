@@ -1,11 +1,18 @@
 #!/bin/bash
 
-# Temporarily run python script
+# Temporarily run+watch python script
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run this script as root"
   exit
 fi
 
+killall nodemon
+killall python3
+
 SCRIPT_DIR=$(dirname $(readlink -f $0))
-python3 $SCRIPT_DIR/../src/midi_pi.py
+pushd $SCRIPT_DIR/../src/ > /dev/null
+
+while sleep 0.5; do
+  ls -d *.py | entr -d -r python3 midi_pi.py
+done

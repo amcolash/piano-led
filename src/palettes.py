@@ -22,10 +22,11 @@ Pink = [
 ]
 
 MAX_BRIGHTNESS = 10
+BRIGHTNESS_SCALAR = MAX_BRIGHTNESS / 255
 
 def lerp(a, b, t):
   value = a + (b-a) * t
-  return int(value * (MAX_BRIGHTNESS / 255))
+  return int(value * BRIGHTNESS_SCALAR)
 
 def lerpColor(a, b, t):
   return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]
