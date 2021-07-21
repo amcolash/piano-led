@@ -21,15 +21,16 @@ Pink = [
   [1, [250,30,60]],
 ]
 
-MAX_BRIGHTNESS = 10
+MAX_BRIGHTNESS = 20
 BRIGHTNESS_SCALAR = MAX_BRIGHTNESS / 255
 
-def lerp(a, b, t):
+def lerp(a, b, t, scaled=False):
   value = a + (b-a) * t
-  return int(value * BRIGHTNESS_SCALAR)
+  if scaled: return int(value * BRIGHTNESS_SCALAR)
+  else: return int(value)
 
-def lerpColor(a, b, t):
-  return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]
+def lerpColor(a, b, t, scaled=False):
+  return [lerp(a[0], b[0], t, scaled), lerp(a[1], b[1], t, scaled), lerp(a[2], b[2], t, scaled)]
 
 def generatePalette(gradient, LED_COUNT):
   palette = []
@@ -43,7 +44,7 @@ def generatePalette(gradient, LED_COUNT):
     while percent <= right[0]:
       t = (percent - left[0]) / (right[0] - left[0])
       # palette.append([i, step, t, lerpColor(left[1], right[1], t)])
-      palette.append(lerpColor(left[1], right[1], t))
+      palette.append(lerpColor(left[1], right[1], t, True))
 
       i += 1
       percent = i / (LED_COUNT - 1)
