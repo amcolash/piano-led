@@ -27,6 +27,7 @@ I2C_ADDRESS = 8
 DEBUG_MIDI = False
 DEBUG_I2C = False
 PROFILING = False
+FORWARD_MIDI = True
 
 # Key Configuration
 MIN_KEY = 28
@@ -43,13 +44,13 @@ class PlayMode(Enum):
   BRIGHTEN_CURRENT = auto()
   RIPPLE = auto()
 
-PLAYING_MODE = PlayMode.RIPPLE
+PLAYING_MODE = PlayMode.BRIGHTEN_CURRENT
 
 # Scalar of how much to brighten colors with BRIGHTEN_CURRENT
 BRIGHTEN_AMOUNT = 10
 
 # Number of keys to ripple from
-RIPPLE_KEYS = 7
+RIPPLE_KEYS = 4
 # Scalar of how much to brighten colors with RIPPLE_BRIGHTNESS
 RIPPLE_BRIGHTNESS = 4
 
@@ -67,11 +68,12 @@ class AmbientMode(Enum):
   SINGLE_COLOR = auto()
   BOUNCE = auto()
   PALETTE = auto()
+  PALETTE_BREATH = auto()
   PALETTE_CYCLE = auto()
   PALETTE_CYCLE_SINGLE = auto()
   PALETTE_SCROLL = auto()
 
-AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
+AMBIENT_MODE = AmbientMode.PALETTE
 
 # Color for single color mode
 AMBIENT_COLOR = [0,20,0]
@@ -86,7 +88,9 @@ cycle = 0
 colorIndex = 0
 
 bus = None
-midi_in = rtmidi.MidiIn()
+midi_in_piano = rtmidi.MidiIn()
+midi_in_system = rtmidi.MidiIn()
+midi_out_piano = rtmidi.MidiOut()
 midiCount = 0
 
 leds = []
@@ -102,69 +106,82 @@ class MidiInputHandler(object):
     self._wallclock = time.time()
 
   def __call__(self, event, data=None):
-    global colorIndex, lastPlayed, cycle
+    global colorIndex, lastPlayed, cycle, midi_out_piano
 
     message, deltatime = event
     self._wallclock += deltatime
     # print("[%s] @%0.6f %r" % (self.port, self._wallclock, message))
 
-    # Forward midi message to leonardo
-    try:
-      bus.write_i2c_block_data(I2C_ADDRESS, 0, message)
-    except:
-      if DEBUG_I2C: print(niceTime() + ': ' + str(sys.exc_info()))
+    # If we want to forward midi to piano
+    if FORWARD_MIDI and midi_out_piano.is_port_open():
+      midi_out_piano.send_message(message)
 
-    velocity = message[2]
+    # Strip channel from message - all channels will be played
+    event = message[0] >> 4
 
-    # Normal LED Order
-    key = (message[1] - MIN_KEY)
+    # Only handle ON (0b1001) and OFF (0b1000) events on ANY channel
+    if event == 0b1001 or event == 0b1000:
+      velocity = message[2]
+      is_on = event == 0b1001 and velocity > 0
 
-    led = int((key / (TOTAL_KEYS + 1)) * LED_COUNT)
+      # print("[%s] @%0.6f %r %s" % (self.port, self._wallclock, message, is_on))
 
-    toUpdate = [led, led + 1]
+      # Forward midi message to leonardo
+      try:
+        bus.write_i2c_block_data(I2C_ADDRESS, 0, message)
+      except:
+        if DEBUG_I2C: print(niceTime() + ': ' + str(sys.exc_info()))
 
-    # Default to target2
-    newColor = leds[led]['target2']
+      # Normal LED Order
+      key = (message[1] - MIN_KEY)
 
-    # next color in cycle
-    if PLAYING_MODE == PlayMode.CYCLE_COLORS:
-      newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
-      colorIndex = (colorIndex + 10) % 360
+      led = int((key / (TOTAL_KEYS + 1)) * LED_COUNT)
 
-    # brighten current color (assume max ambient rgb of about 20)
-    elif PLAYING_MODE == PlayMode.BRIGHTEN_CURRENT:
-      newColor = [min(255, c * BRIGHTEN_AMOUNT) for c in leds[led]['target1']]
+      toUpdate = [led, led + 1]
 
-    elif PLAYING_MODE == PlayMode.RIPPLE:
-      # toUpdate = []
-      leds[led]['ripple'] = velocity > 0
-      for i in range(led - RIPPLE_KEYS, led + RIPPLE_KEYS):
-        if i >= 0 and i < LED_COUNT and i not in toUpdate:
-          toUpdate.append(i)
+      # Default to target2
+      newColor = leds[led]['target2']
 
-    lastPlayed = time.time()
+      # next color in cycle
+      if PLAYING_MODE == PlayMode.CYCLE_COLORS:
+        newColor = hsv_to_rgb_int(colorIndex / 360, 1, 0.3)
+        colorIndex = (colorIndex + 10) % 360
 
-    for i in toUpdate:
-      if i >= 0 and i < LED_COUNT:
-        try:
-          if velocity > 0:
-            leds[i]['state'].append(led)
-          else:
-            leds[i]['state'].remove(led)
-        except:
-          print(niceTime() + ': ' + str(sys.exc_info()))
+      # brighten current color (assume max ambient rgb of about 20)
+      elif PLAYING_MODE == PlayMode.BRIGHTEN_CURRENT:
+        newColor = [min(255, c * BRIGHTEN_AMOUNT) for c in leds[led]['target1']]
 
-        if len(leds[i]['state']) == 0:
-          leds[i]['ripple'] = False
+      elif PLAYING_MODE == PlayMode.RIPPLE:
+        # toUpdate = []
+        leds[led]['ripple'] = is_on
+        for i in range(led - RIPPLE_KEYS, led + RIPPLE_KEYS):
+          if i >= 0 and i < LED_COUNT and i not in toUpdate:
+            toUpdate.append(i)
 
-        # print(str(i) + ', ' + str(leds[i]['state']))
+      lastPlayed = time.time()
 
-        if PLAYING_MODE == PlayMode.RIPPLE:
-          if leds[i]['target1'] != [0,0,0]: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in leds[i]['target1']]
-          else: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in palette[i]]
+      for i in toUpdate:
+        if i >= 0 and i < LED_COUNT:
+          try:
+            if is_on:
+              leds[i]['state'].append(led)
+            else:
+              leds[i]['state'].remove(led)
+          except:
+            # print(niceTime() + ': ' + str(sys.exc_info()))
+            x = 1
 
-        leds[i]['target2'] = newColor
-        leds[i]['playTime'] = lastPlayed
+          if len(leds[i]['state']) == 0:
+            leds[i]['ripple'] = False
+
+          # print(str(i) + ', ' + str(leds[i]['state']))
+
+          if PLAYING_MODE == PlayMode.RIPPLE:
+            if leds[i]['target1'] != [0,0,0]: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in leds[i]['target1']]
+            else: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in palette[i]]
+
+          leds[i]['target2'] = newColor
+          leds[i]['playTime'] = lastPlayed
 
 def hsv_to_rgb(h, s, v):
   if s == 0.0: v*=255; return [v, v, v]
@@ -188,8 +205,12 @@ def updateLeds():
     ambient = time.time() - lastPlayed > 10
     hour = datetime.datetime.now(tz).hour
 
-    if AMBIENT_MODE == AmbientMode.BOUNCE:
-      xpos = math.sin((cycle % LED_COUNT) / LED_COUNT * math.pi) * LED_COUNT
+    if AMBIENT_MODE == AmbientMode.BOUNCE or AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
+      xpos = math.sin((cycle % LED_COUNT) / LED_COUNT * math.pi * 2) * LED_COUNT
+      b = (math.cos(cycle / 7) + 1) / 9 + 0.25
+      b = 1
+      c = palette[int(cycle)]
+      breath = [int (b * c[0]), int (b * c[1]), int (b * c[2])]
 
     dirty = False
 
@@ -200,7 +221,11 @@ def updateLeds():
       led['previous'][1] = led['current'][1]
       led['previous'][2] = led['current'][2]
 
+      # time since last time played
       since = time.time() - led['playTime']
+
+      # clear out LEDs when idle
+      if since > 10 and len(led['state']) > 0: led['state'] = []
 
       # only update target1 when ambient mode is active - otherwise skip
       if ambient:
@@ -230,6 +255,9 @@ def updateLeds():
           seg = math.cos(((LED_COUNT - l + cycle) / LED_COUNT) * 3 * math.pi)
           if abs(seg) > 0.95: led['target1'] = palette[int(cycle / 2 % LED_COUNT)]
           else: led['target1'] = [0, 0, 0]
+
+        elif AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
+          led['target1'] = breath
 
       # Ripple
       if not ambient and PLAYING_MODE == PlayMode.RIPPLE and l in led['state']:
@@ -285,22 +313,28 @@ def initI2C():
   bus = SMBus(1)
 
 def initMidi():
-  global midi_in, midiCount
+  global midi_in_system, midi_in_piano, midi_out_piano, midiCount
 
   try:
     midiCount = 100
 
-    if midi_in.get_port_count() < 2:
-      if midi_in.is_port_open():
+    if not midi_in_system.is_port_open():
+      port_name = midi_in_system.open_port(0)
+      midi_in_system.set_callback(MidiInputHandler(port_name))
+
+    if midi_in_piano.get_port_count() < 2:
+      if midi_in_piano.is_port_open():
         if DEBUG_MIDI: print('Closing old port')
-        midi_in.close_port()
+        midi_in_piano.close_port()
+        midi_out_piano.close_port()
       else:
         if DEBUG_MIDI: print('No Device')
     else:
-      if not midi_in.is_port_open():
+      if not midi_in_piano.is_port_open():
         if DEBUG_MIDI: print('Init MIDI')
-        port_name = midi_in.open_port(1)
-        midi_in.set_callback(MidiInputHandler(port_name))
+        port_name = midi_in_piano.open_port(1)
+        midi_in_piano.set_callback(MidiInputHandler(port_name))
+        midi_out_piano.open_port(1)
       else:
         if DEBUG_MIDI: print('MIDI Fine')
   except:
@@ -348,5 +382,9 @@ except KeyboardInterrupt:
     print('')
 finally:
     print('Exit')
-    midi_in.close_port()
-    del midi_in
+    midi_in_piano.close_port()
+    midi_out_piano.close_port()
+    midi_in_system.close_port()
+    del midi_in_piano
+    del midi_out_piano
+    del midi_in_system
