@@ -51,8 +51,6 @@ BRIGHTEN_AMOUNT = 10
 
 # Number of keys to ripple from
 RIPPLE_KEYS = 4
-# Scalar of how much to brighten colors with RIPPLE_BRIGHTNESS
-RIPPLE_BRIGHTNESS = 4
 
 # Color Configuration
 CURRENT_PALETTE = palettes.Ocean
@@ -101,19 +99,23 @@ tz = pytz.timezone('America/Los_Angeles')
 # Begin Code
 
 class MidiInputHandler(object):
-  def __init__(self, port):
+  def __init__(self, port, piano):
     self.port = port
-    self._wallclock = time.time()
+    self.wallclock = time.time()
+    self.piano = piano
 
   def __call__(self, event, data=None):
     global colorIndex, lastPlayed, cycle, midi_out_piano
 
     message, deltatime = event
-    self._wallclock += deltatime
-    # print("[%s] @%0.6f %r" % (self.port, self._wallclock, message))
+    self.wallclock += deltatime
+    # print("[%s] @%0.6f %r" % (self.port, self.wallclock, message))
 
-    # If we want to forward midi to piano
-    if FORWARD_MIDI and midi_out_piano.is_port_open():
+    # clamp velocity to make things a bit quieter
+    if len(message) > 2: message[2] = min(80, message[2])
+
+    # If we want to forward midi to piano and got an event
+    if not self.piano and midi_out_piano.is_port_open():
       midi_out_piano.send_message(message)
 
     # Strip channel from message - all channels will be played
@@ -124,13 +126,14 @@ class MidiInputHandler(object):
       velocity = message[2]
       is_on = event == 0b1001 and velocity > 0
 
-      # print("[%s] @%0.6f %r %s" % (self.port, self._wallclock, message, is_on))
+      # print("[%s] @%0.6f %r %s" % (self.port, self.wallclock, message, is_on))
 
-      # Forward midi message to leonardo
-      try:
-        bus.write_i2c_block_data(I2C_ADDRESS, 0, message)
-      except:
-        if DEBUG_I2C: print(niceTime() + ': ' + str(sys.exc_info()))
+      # Forward piano midi messages to leonardo
+      if self.piano:
+        try:
+          bus.write_i2c_block_data(I2C_ADDRESS, 0, message)
+        except:
+          if DEBUG_I2C: print(niceTime() + ': ' + str(sys.exc_info()))
 
       # Normal LED Order
       key = (message[1] - MIN_KEY)
@@ -177,8 +180,8 @@ class MidiInputHandler(object):
           # print(str(i) + ', ' + str(leds[i]['state']))
 
           if PLAYING_MODE == PlayMode.RIPPLE:
-            if leds[i]['target1'] != [0,0,0]: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in leds[i]['target1']]
-            else: newColor = [min(255, c * RIPPLE_BRIGHTNESS) for c in palette[i]]
+            if leds[i]['target1'] != [0,0,0]: newColor = [min(255, c * BRIGHTEN_AMOUNT) for c in leds[i]['target1']]
+            else: newColor = [min(255, c * BRIGHTEN_AMOUNT) for c in palette[i]]
 
           leds[i]['target2'] = newColor
           leds[i]['playTime'] = lastPlayed
@@ -320,7 +323,8 @@ def initMidi():
 
     if not midi_in_system.is_port_open():
       port_name = midi_in_system.open_port(0)
-      midi_in_system.set_callback(MidiInputHandler(port_name))
+      midi_in_system.set_callback(MidiInputHandler(port_name, False))
+      # port_name.set
 
     if midi_in_piano.get_port_count() < 2:
       if midi_in_piano.is_port_open():
@@ -333,7 +337,7 @@ def initMidi():
       if not midi_in_piano.is_port_open():
         if DEBUG_MIDI: print('Init MIDI')
         port_name = midi_in_piano.open_port(1)
-        midi_in_piano.set_callback(MidiInputHandler(port_name))
+        midi_in_piano.set_callback(MidiInputHandler(port_name, True))
         midi_out_piano.open_port(1)
       else:
         if DEBUG_MIDI: print('MIDI Fine')
