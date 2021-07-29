@@ -28,6 +28,7 @@ DEBUG_MIDI = False
 DEBUG_I2C = False
 PROFILING = False
 FORWARD_MIDI = True
+MIDI_DEVICE = "Digital Keyboard" # A partial match of the midi device name
 
 # Key Configuration
 MIN_KEY = 28
@@ -324,9 +325,12 @@ def initMidi():
     if not midi_in_system.is_port_open():
       port_name = midi_in_system.open_port(0)
       midi_in_system.set_callback(MidiInputHandler(port_name, False))
-      # port_name.set
+      midi_in_system.set_client_name('System MIDI In')
 
-    if midi_in_piano.get_port_count() < 2:
+    ports = midi_in_piano.get_ports()
+    keyboard_present = any(MIDI_DEVICE in string for string in ports)
+
+    if not keyboard_present:
       if midi_in_piano.is_port_open():
         if DEBUG_MIDI: print('Closing old port')
         midi_in_piano.close_port()
@@ -338,7 +342,10 @@ def initMidi():
         if DEBUG_MIDI: print('Init MIDI')
         port_name = midi_in_piano.open_port(1)
         midi_in_piano.set_callback(MidiInputHandler(port_name, True))
+        midi_in_piano.set_client_name('Piano MIDI In')
+
         midi_out_piano.open_port(1)
+        midi_out_piano.set_client_name('Piano MIDI Out')
       else:
         if DEBUG_MIDI: print('MIDI Fine')
   except:
