@@ -60,6 +60,7 @@ class Config:
 
   # Color Configuration
   CURRENT_PALETTE = palettes.Ocean
+  PALETTE = palettes.generatePalette(CURRENT_PALETTE, LED_COUNT)
 
   # Ambient Configuration
   NIGHT_MODE_ENABLED = True
