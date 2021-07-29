@@ -25,7 +25,7 @@ class Leds:
     try:
       start = time.time()
       ambient = time.time() - cls.lastPlayed > 10
-      hour = datetime.datetime.now(Config.TZ).hour
+      hour = datetime.datetime.now(Config.TIMEZONE).hour
 
       if Config.AMBIENT_MODE == AmbientMode.BOUNCE or Config.AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
         xpos = math.sin((cls.cycle % Config.LED_COUNT) / Config.LED_COUNT * math.pi * 2) * Config.LED_COUNT

@@ -39,9 +39,7 @@ class Config:
   PROFILING = False
   FORWARD_MIDI = True
   MIDI_DEVICE = "Digital Keyboard" # A partial match of the midi device name
-  TIMEZONE = "America/Los_Angeles"
-
-  TZ = pytz.timezone(TIMEZONE)
+  TIMEZONE = pytz.timezone("America/Los_Angeles")
 
   # Key Configuration
   MIN_KEY = 28
