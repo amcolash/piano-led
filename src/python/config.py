@@ -33,7 +33,8 @@ class Config:
 
   # Base Configuration
   I2C_BUS = 1
-  I2C_ADDRESS = 8
+  I2C_MIDI_ADDRESS = 8
+  I2C_DISPLAY_ADDRESS = 60
   DEBUG_MIDI = False
   DEBUG_I2C = False
   PROFILING = False
@@ -65,7 +66,7 @@ class Config:
   NIGHT_MODE_ENABLED = True
   NIGHT_MODE_START_HOUR = 1 # Starting hour when night mode begins (inclusive)
   NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
-  AMBIENT_MODE = AmbientMode.PALETTE
+  AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
 
   # Color for single color mode
   AMBIENT_COLOR = [0,20,0]

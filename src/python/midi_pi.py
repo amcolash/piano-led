@@ -2,6 +2,7 @@ import cProfile
 import pstats
 
 from config import Config
+from display import Display
 from i2c import I2C
 from leds import Leds
 from midi_ports import MidiPorts
@@ -12,6 +13,8 @@ try:
 
   Leds.init()
   I2C.init()
+
+  disp = Display()
 
   # Just wait for keyboard interrupt, everything else is handled via the input callback.
   while True:
@@ -33,6 +36,7 @@ try:
       break
 
     Leds.updateLeds()
+    disp.update()
     # time.sleep(0.0005)
 except KeyboardInterrupt:
   print('')

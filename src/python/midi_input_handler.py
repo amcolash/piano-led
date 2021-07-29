@@ -33,7 +33,7 @@ class MidiInputHandler(object):
       # Forward piano midi messages to leonardo
       if not self.midi_out_piano:
         try:
-          I2C.bus.write_i2c_block_data(Config.I2C_ADDRESS, 0, message)
+          I2C.bus.write_i2c_block_data(Config.I2C_MIDI_ADDRESS, 0, message)
         except:
           if Config.DEBUG_I2C: print(util.niceTime() + ': ' + str(sys.exc_info()))
 
