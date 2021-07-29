@@ -48,9 +48,10 @@ class Leds:
 
         # clear out LEDs when idle
         if since > 10 and len(led['state']) > 0: led['state'] = []
+        if Config.PALETTE_DIRTY == 1: led['state'] = []
 
         # only update target1 when ambient mode is active - otherwise skip
-        if ambient:
+        if ambient or Config.PALETTE_DIRTY > 0:
           # color
           if Config.AMBIENT_MODE == AmbientMode.SINGLE_COLOR:
             led['target1'] = Config.AMBIENT_COLOR
@@ -81,8 +82,11 @@ class Leds:
           elif Config.AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
             led['target1'] = breath
 
+          elif Config.AMBIENT_MODE == AmbientMode.OFF:
+            led['target1'] = [0, 0, 0]
+
         # Ripple
-        if not ambient and Config.PLAYING_MODE == PlayMode.RIPPLE and l in led['state']:
+        if not ambient and Config.PLAY_MODE == PlayMode.RIPPLE and l in led['state']:
           # print(l)
           pos = int(abs(math.sin(since * 10)) * Config.RIPPLE_KEYS)
           toUpdate = [l + pos, l - pos]
@@ -91,7 +95,7 @@ class Leds:
             if u >= 0 and u < Config.LED_COUNT:
               cls.leds[u]['ripple'] = True
 
-        if Config.PLAYING_MODE == PlayMode.RIPPLE:
+        if Config.PLAY_MODE == PlayMode.RIPPLE:
           currentTarget = led['target2'] if led['ripple'] else led['target1']
         else:
           currentTarget = led['target2'] if len(led['state']) > 0 else led['target1']
@@ -115,6 +119,10 @@ class Leds:
         if led['current'] != led['previous']:
           cls.strip.setPixelColor(l, Color(int(led['current'][0]), int(led['current'][1]), int(led['current'][2])))
           dirty = True
+
+
+      if Config.PALETTE_DIRTY > 0:
+        Config.PALETTE_DIRTY -= 1
 
       if dirty:
         cls.strip.show()

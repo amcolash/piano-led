@@ -52,15 +52,15 @@ class MidiInputHandler(object):
       newColor = mainLed['target2']
 
       # next color in cycle
-      if Config.PLAYING_MODE == PlayMode.CYCLE_COLORS:
+      if Config.PLAY_MODE == PlayMode.CYCLE_COLORS:
         newColor = palettes.hsv_to_rgb_int(self.colorIndex / 360, 1, 0.3)
         self.colorIndex = (self.colorIndex + 10) % 360
 
       # brighten current color (assume max ambient rgb of about 20)
-      elif Config.PLAYING_MODE == PlayMode.BRIGHTEN_CURRENT:
+      elif Config.PLAY_MODE == PlayMode.BRIGHTEN_CURRENT:
         newColor = [min(255, c * Config.BRIGHTEN_AMOUNT) for c in mainLed['target1']]
 
-      elif Config.PLAYING_MODE == PlayMode.RIPPLE:
+      elif Config.PLAY_MODE == PlayMode.RIPPLE:
         # toUpdate = []
         mainLed['ripple'] = is_on
         for i in range(led - Config.RIPPLE_KEYS, led + Config.RIPPLE_KEYS):
@@ -87,7 +87,7 @@ class MidiInputHandler(object):
 
           # print(str(i) + ', ' + str(updateLed['state']))
 
-          if Config.PLAYING_MODE == PlayMode.RIPPLE:
+          if Config.PLAY_MODE == PlayMode.RIPPLE:
             if updateLed['target1'] != [0,0,0]: newColor = [min(255, c * Config.BRIGHTEN_AMOUNT) for c in updateLed['target1']]
             else: newColor = [min(255, c * Config.BRIGHTEN_AMOUNT) for c in Config.PALETTE[i]]
 

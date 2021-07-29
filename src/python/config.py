@@ -50,7 +50,7 @@ class Config:
   # Playing Configuration
   FADE_SPEED = 5
 
-  PLAYING_MODE = PlayMode.BRIGHTEN_CURRENT
+  PLAY_MODE = PlayMode.BRIGHTEN_CURRENT
 
   # Scalar of how much to brighten colors with BRIGHTEN_CURRENT
   BRIGHTEN_AMOUNT = 10
@@ -59,8 +59,9 @@ class Config:
   RIPPLE_KEYS = 4
 
   # Color Configuration
-  CURRENT_PALETTE = palettes.Ocean
-  PALETTE = palettes.generatePalette(CURRENT_PALETTE, LED_COUNT)
+  CURRENT_PALETTE = palettes.Palette.Ocean
+  PALETTE = palettes.generatePalette(CURRENT_PALETTE.value, LED_COUNT)
+  PALETTE_DIRTY = 0
 
   # Ambient Configuration
   NIGHT_MODE_ENABLED = True
@@ -72,3 +73,12 @@ class Config:
   AMBIENT_COLOR = [0,20,0]
 
   CYCLE_SPEED = 0.15
+
+  @classmethod
+  def updatePalette(cls, pal):
+    cls.CURRENT_PALETTE = pal
+    cls.PALETTE = palettes.generatePalette(cls.CURRENT_PALETTE.value, cls.LED_COUNT)
+
+    # Set this value to a counter so that we retry to set the value a few times, this is due to the button press triggering potentially
+    # in the middle of the update cycle. We should technically only need 2 updates, but using 3 just in case. Plus, it adds a nice fade
+    cls.PALETTE_DIRTY = 3

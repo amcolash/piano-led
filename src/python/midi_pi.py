@@ -37,6 +37,7 @@ try:
 
     Leds.updateLeds()
     disp.update()
+
     # time.sleep(0.0005)
 except KeyboardInterrupt:
   print('')
