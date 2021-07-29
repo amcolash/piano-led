@@ -1,38 +1,43 @@
 import datetime
+import math
 from rpi_ws281x import PixelStrip, Color
 import time
 
 from config import AmbientMode, Config, PlayMode
 
+# This class is a singleton
+
 class Leds:
-  def __init__(self):
-    self.strip = PixelStrip(Config.LED_COUNT, Config.LED_PIN, Config.LED_FREQ_HZ, Config.LED_DMA, Config.LED_INVERT, Config.LED_BRIGHTNESS, Config.LED_CHANNEL)
-    self.strip.begin()
+  @classmethod
+  def init(cls):
+    cls.strip = PixelStrip(Config.LED_COUNT, Config.LED_PIN, Config.LED_FREQ_HZ, Config.LED_DMA, Config.LED_INVERT, Config.LED_BRIGHTNESS, Config.LED_CHANNEL)
+    cls.strip.begin()
 
-    self.leds = []
+    cls.leds = []
     for l in range(Config.LED_COUNT):
-      self.leds.append({ 'current': [-1,-1,-1], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': [], 'playTime': 0, 'ripple': False })
+      cls.leds.append({ 'current': [-1,-1,-1], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': [], 'playTime': 0, 'ripple': False })
 
-    self.cycle = 0
-    self.lastPlayed = 0
+    cls.cycle = 0
+    cls.lastPlayed = 0
 
-  def updateLeds(self):
+  @classmethod
+  def updateLeds(cls):
     try:
       start = time.time()
-      ambient = time.time() - self.lastPlayed > 10
+      ambient = time.time() - cls.lastPlayed > 10
       hour = datetime.datetime.now(Config.TZ).hour
 
       if Config.AMBIENT_MODE == AmbientMode.BOUNCE or Config.AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
-        xpos = math.sin((self.cycle % Config.LED_COUNT) / Config.LED_COUNT * math.pi * 2) * Config.LED_COUNT
-        b = (math.cos(self.cycle / 7) + 1) / 9 + 0.25
+        xpos = math.sin((cls.cycle % Config.LED_COUNT) / Config.LED_COUNT * math.pi * 2) * Config.LED_COUNT
+        b = (math.cos(cls.cycle / 7) + 1) / 9 + 0.25
         b = 1
-        c = Config.PALETTE[int(self.cycle)]
+        c = Config.PALETTE[int(cls.cycle)]
         breath = [int (b * c[0]), int (b * c[1]), int (b * c[2])]
 
       dirty = False
 
       for l in range(Config.LED_COUNT):
-        led = self.leds[l]
+        led = cls.leds[l]
 
         led['previous'][0] = led['current'][0]
         led['previous'][1] = led['current'][1]
@@ -52,7 +57,7 @@ class Leds:
 
           # bounce
           elif Config.AMBIENT_MODE == AmbientMode.BOUNCE:
-            if abs(l - xpos) < 5: led['target1'] = Config.PALETTE[int(self.cycle / 10 % Config.LED_COUNT)]
+            if abs(l - xpos) < 5: led['target1'] = Config.PALETTE[int(cls.cycle / 10 % Config.LED_COUNT)]
             else: led['target1'] = [0,0,0]
 
           # palette
@@ -61,16 +66,16 @@ class Leds:
 
           # palette cycle
           elif Config.AMBIENT_MODE == AmbientMode.PALETTE_CYCLE:
-            led['target1'] = Config.PALETTE[int((Config.LED_COUNT - l + self.cycle * 2)) % Config.LED_COUNT]
+            led['target1'] = Config.PALETTE[int((Config.LED_COUNT - l + cls.cycle * 2)) % Config.LED_COUNT]
 
           # palette cycle single color
           elif Config.AMBIENT_MODE == AmbientMode.PALETTE_CYCLE_SINGLE:
-            led['target1'] = Config.PALETTE[int(self.cycle) % Config.LED_COUNT]
+            led['target1'] = Config.PALETTE[int(cls.cycle) % Config.LED_COUNT]
 
           # scroll palette
           elif Config.AMBIENT_MODE == AmbientMode.PALETTE_SCROLL:
-            seg = math.cos(((Config.LED_COUNT - l + self.cycle) / Config.LED_COUNT) * 3 * math.pi)
-            if abs(seg) > 0.95: led['target1'] = Config.PALETTE[int(self.cycle / 2 % Config.LED_COUNT)]
+            seg = math.cos(((Config.LED_COUNT - l + cls.cycle) / Config.LED_COUNT) * 3 * math.pi)
+            if abs(seg) > 0.95: led['target1'] = Config.PALETTE[int(cls.cycle / 2 % Config.LED_COUNT)]
             else: led['target1'] = [0, 0, 0]
 
           elif Config.AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
@@ -84,7 +89,7 @@ class Leds:
           for u in toUpdate:
             # print(toUpdate)
             if u >= 0 and u < Config.LED_COUNT:
-              self.leds[u]['ripple'] = True
+              cls.leds[u]['ripple'] = True
 
         if Config.PLAYING_MODE == PlayMode.RIPPLE:
           currentTarget = led['target2'] if led['ripple'] else led['target1']
@@ -108,16 +113,16 @@ class Leds:
         # led['current'] = palettes.lerpColor(led['current'], currentTarget, 0.2)
 
         if led['current'] != led['previous']:
-          self.strip.setPixelColor(l, Color(int(led['current'][0]), int(led['current'][1]), int(led['current'][2])))
+          cls.strip.setPixelColor(l, Color(int(led['current'][0]), int(led['current'][1]), int(led['current'][2])))
           dirty = True
 
       if dirty:
-        self.strip.show()
+        cls.strip.show()
 
       # util.logTime(start, 'updateLeds')
-      if ambient: self.cycle += Config.CYCLE_SPEED
-      if self.cycle > Config.LED_COUNT:
-        self.cycle -= Config.LED_COUNT
+      if ambient: cls.cycle += Config.CYCLE_SPEED
+      if cls.cycle > Config.LED_COUNT:
+        cls.cycle -= Config.LED_COUNT
 
     except OSError:
       print(util.niceTime() + ': ' + sys.exc_info())

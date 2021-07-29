@@ -32,6 +32,7 @@ class Config:
   LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
   # Base Configuration
+  I2C_BUS = 1
   I2C_ADDRESS = 8
   DEBUG_MIDI = False
   DEBUG_I2C = False
