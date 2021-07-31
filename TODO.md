@@ -8,7 +8,9 @@
 - [ ] Think about a server...
   - [ ] On / Off Toggle
   - [ ] Change Colors
-  - [ ] Persist Settings
 - [X] Run program on boot
-- [ ] "HAT" for arduino
+- [ ] "HAT" for arduino / buttons
 - [ ] Display and buttons
+  - [ ] Scroll text
+  - [ ] More options
+  - [ ] Persist settings
