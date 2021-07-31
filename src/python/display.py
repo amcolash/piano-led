@@ -42,6 +42,8 @@ class Display:
     self.disp.fill(0)
     self.disp.show()
 
+    self.disp.contrast(1)
+
     # Create blank image for drawing.
     # Make sure to create image with mode '1' for 1-bit color.
     self.width = self.disp.width
@@ -67,16 +69,19 @@ class Display:
           if self.menu[self.scroll] == 'Palette':
             pals = list(Palette)
             current = pals.index(Config.CURRENT_PALETTE)
-            Config.updatePalette(pals[(current + 1) % len(pals)])
+            Config.TO_UPDATE['CURRENT_PALETTE'] = pals[(current + 1) % len(pals)]
+            # Config.updatePalette(pals[(current + 1) % len(pals)])
           elif self.menu[self.scroll] == 'Play':
             mode = list(PlayMode)
             current = mode.index(Config.PLAY_MODE)
-            Config.PLAY_MODE = mode[(current + 1) % len(mode)]
+            Config.TO_UPDATE['PLAY_MODE'] = mode[(current + 1) % len(mode)]
+            # Config.PLAY_MODE = mode[(current + 1) % len(mode)]
           elif self.menu[self.scroll] == 'Ambient':
             mode = list(AmbientMode)
             current = mode.index(Config.AMBIENT_MODE)
-            Config.AMBIENT_MODE = mode[(current + 1) % len(mode)]
-            Config.PALETTE_DIRTY = 3 # force a color palette refresh when changing ambient modes
+            Config.TO_UPDATE['AMBIENT_MODE'] = mode[(current + 1) % len(mode)]
+            # Config.AMBIENT_MODE = mode[(current + 1) % len(mode)]
+            # Config.PALETTE_DIRTY = 3 # force a color palette refresh when changing ambient modes
 
       self.dirty = True
       self.debounce = time.time()
@@ -88,7 +93,7 @@ class Display:
     prevDisplayOn = self.displayOn
     self.displayOn = time.time() - self.debounce < 30
 
-    if self.dirty or prevDisplayOn != self.displayOn:
+    if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn:
       # Draw a black filled box to clear the image.
       self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
@@ -117,4 +122,5 @@ class Display:
       self.disp.image(self.image)
       self.disp.show()
 
+      Config.DIRTY = False
       self.dirty = False

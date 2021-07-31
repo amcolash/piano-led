@@ -1,7 +1,13 @@
 from enum import Enum, auto
+import os
+from pathlib import Path
+import pickle
 import pytz
 
 import palettes
+
+# File path of settings file
+settingsFile = Path(str(Path(__file__).parent) + '/settings.p')
 
 # PLAYING_MODE Options
 class PlayMode(Enum):
@@ -21,64 +27,104 @@ class AmbientMode(Enum):
   PALETTE_CYCLE_SINGLE = auto()
   PALETTE_SCROLL = auto()
 
-class Config:
-  # LED strip configuration:
-  LED_COUNT = 148        # Number of LED pixels.
-  LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
-  LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
-  LED_DMA = 10          # DMA channel to use for generating signal (try 10)
-  LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
-  LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
-  LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
+class Configuration:
+  def __init__(self):
+    ### Not restored on restart ###
 
-  # Base Configuration
-  I2C_BUS = 1
-  I2C_MIDI_ADDRESS = 8
-  I2C_DISPLAY_ADDRESS = 60
-  DEBUG_MIDI = False
-  DEBUG_I2C = False
-  PROFILING = False
-  FORWARD_MIDI = True
-  MIDI_DEVICE = "Digital Keyboard" # A partial match of the midi device name
-  TIMEZONE = pytz.timezone("America/Los_Angeles")
+    # Things that should be updated - note, these will be updated on the next cycle to avoid threading issues
+    self.TO_UPDATE = {}
+    self.DIRTY = False
 
-  # Key Configuration
-  MIN_KEY = 28
-  MAX_KEY = 103
-  TOTAL_KEYS = MAX_KEY - MIN_KEY
+    # LED strip configuration:
+    self.LED_COUNT = 148        # Number of LED pixels.
+    self.LED_PIN = 18          # GPIO pin connected to the pixels (18 uses PWM!).
+    self.LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
+    self.LED_DMA = 10          # DMA channel to use for generating signal (try 10)
+    self.LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
+    self.LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
+    self.LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
-  # Playing Configuration
-  FADE_SPEED = 5
+    # Base Configuration
+    self.I2C_BUS = 1
+    self.I2C_MIDI_ADDRESS = 8
+    self.I2C_DISPLAY_ADDRESS = 60
+    self.DEBUG_MIDI = False
+    self.DEBUG_I2C = False
+    self.PROFILING = False
+    self.FORWARD_MIDI = True
+    self.MIDI_DEVICE = "Digital Keyboard" # A partial match of the midi device name
+    self.TIMEZONE = pytz.timezone("America/Los_Angeles")
 
-  PLAY_MODE = PlayMode.BRIGHTEN_CURRENT
+    # Key Configuration
+    self.MIN_KEY = 28
+    self.MAX_KEY = 103
+    self.TOTAL_KEYS = self.MAX_KEY - self.MIN_KEY
 
-  # Scalar of how much to brighten colors with BRIGHTEN_CURRENT
-  BRIGHTEN_AMOUNT = 10
+    ### Restored on restart ###
 
-  # Number of keys to ripple from
-  RIPPLE_KEYS = 4
+    # Playing Configuration
+    self.FADE_SPEED = 5
 
-  # Color Configuration
-  CURRENT_PALETTE = palettes.Palette.Ocean
-  PALETTE = palettes.generatePalette(CURRENT_PALETTE.value, LED_COUNT)
-  PALETTE_DIRTY = 0
+    self.PLAY_MODE = PlayMode.BRIGHTEN_CURRENT
 
-  # Ambient Configuration
-  NIGHT_MODE_ENABLED = True
-  NIGHT_MODE_START_HOUR = 1 # Starting hour when night mode begins (inclusive)
-  NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
-  AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
+    # Scalar of how much to brighten colors with BRIGHTEN_CURRENT
+    self.BRIGHTEN_AMOUNT = 10
 
-  # Color for single color mode
-  AMBIENT_COLOR = [0,20,0]
+    # Number of keys to ripple from
+    self.RIPPLE_KEYS = 8
 
-  CYCLE_SPEED = 0.15
+    # Color Configuration
+    self.CURRENT_PALETTE = palettes.Palette.Ocean
+    self.PALETTE = palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)
+    self.PALETTE_DIRTY = 0
 
-  @classmethod
-  def updatePalette(cls, pal):
-    cls.CURRENT_PALETTE = pal
-    cls.PALETTE = palettes.generatePalette(cls.CURRENT_PALETTE.value, cls.LED_COUNT)
+    # Ambient Configuration
+    self.NIGHT_MODE_ENABLED = True
+    self.NIGHT_MODE_START_HOUR = 1 # Starting hour when night mode begins (inclusive)
+    self.NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
+    self.AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
+
+    self.CYCLE_SPEED = 0.15
+
+  def updatePalette(self, pal):
+    self.CURRENT_PALETTE = pal
+    self.PALETTE = palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)
 
     # Set this value to a counter so that we retry to set the value a few times, this is due to the button press triggering potentially
     # in the middle of the update cycle. We should technically only need 2 updates, but using 3 just in case. Plus, it adds a nice fade
-    cls.PALETTE_DIRTY = 3
+    self.PALETTE_DIRTY = 3
+
+  def load(self):
+    if settingsFile.exists():
+      loaded = pickle.load(open(settingsFile, "rb"))
+
+      self.updatePalette(loaded.CURRENT_PALETTE)
+      self.AMBIENT_MODE = loaded.AMBIENT_MODE
+      self.PLAY_MODE = loaded.PLAY_MODE
+
+  def save(self):
+    pickle.dump(self, open(settingsFile, "wb"))
+
+  # This function is called every loop of the update to check if there are newly updated settings. Each is then modified and then after
+  # all have been changed, the new config is saved. This prevents threading issues from the interrupt-based issues with button handlers.
+  def update(self):
+    keys = list(self.TO_UPDATE.keys())
+    values = list(self.TO_UPDATE.values())
+
+    if len(keys) > 0:
+      for i in range(len(keys)):
+        if keys[i] == 'CURRENT_PALETTE':
+          self.updatePalette(values[i])
+        else:
+          setattr(self, keys[i], values[i])
+
+      self.TO_UPDATE = {}
+
+      # Save config after update
+      self.save()
+
+      # Tell Display that things are dirty for next update
+      self.DIRTY = True
+
+Config = Configuration()
+Config.load()

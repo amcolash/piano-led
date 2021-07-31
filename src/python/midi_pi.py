@@ -14,12 +14,10 @@ try:
   Leds.init()
   I2C.init()
 
-  disp = Display()
+  Disp = Display()
 
   # Just wait for keyboard interrupt, everything else is handled via the input callback.
   while True:
-    MidiPorts.update()
-
     if Config.PROFILING:
       profile = cProfile.Profile()
       profile.enable()
@@ -35,12 +33,12 @@ try:
 
       break
 
+    MidiPorts.update()
+    Config.update()
     Leds.updateLeds()
-    disp.update()
+    Disp.update()
 
     # time.sleep(0.0005)
-except KeyboardInterrupt:
-  print('')
 finally:
   MidiPorts.cleanup()
   print('Exit')

@@ -54,7 +54,7 @@ class Leds:
         if ambient or Config.PALETTE_DIRTY > 0:
           # color
           if Config.AMBIENT_MODE == AmbientMode.SINGLE_COLOR:
-            led['target1'] = Config.AMBIENT_COLOR
+            led['target1'] = Config.PALETTE[0]
 
           # bounce
           elif Config.AMBIENT_MODE == AmbientMode.BOUNCE:
