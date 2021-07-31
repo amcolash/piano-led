@@ -1,12 +1,12 @@
 import adafruit_ssd1306
 from board import SCL, SDA
 import busio
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import RPi.GPIO as GPIO
 import time
 
 from config import AmbientMode, Config, PlayMode
-from menu_item import MenuItem
+from menu_item import Icons, MenuItem
 from palettes import Palette
 from util import enumName
 
@@ -15,10 +15,10 @@ BUTTON2 = 19
 BUTTON3 = 26
 
 mainMenu = [
-  MenuItem('Nested', items=[
-    MenuItem('Color Palette', lambda value: Config.updatePalette(value), options=list(Palette)),
-    MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), options=list(PlayMode)),
-    MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), options=list(AmbientMode)),
+  MenuItem('Nested', icon=Icons['triangle'], items=[
+    MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette)),
+    MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode)),
+    MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
   ])
 ]
 
@@ -79,13 +79,16 @@ class Display:
       elif channel == BUTTON2:
         selected = menuSection['items'][menuSection['scroll']]
 
-        if len(selected.options) > 0:
-          options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, i), selected.options))
-          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back')] + options}]
-        elif len(selected.items) > 0:
-          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back')] + selected.items}]
+        if len(selected.items) > 0:
+          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', icon=Icons['back'])] + selected.items}]
+        elif len(selected.options) > 0:
+          scroll = 1
+          if selected.value != None: scroll = selected.options.index(selected.value()) + 1
+
+          options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, value=lambda: i, parent=selected), selected.options))
+          self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', icon=Icons['back'])] + options}]
         else:
-          if selected.onSelect != None: selected.onSelect(selected.value)
+          if selected.onSelect != None and selected.value != None: selected.onSelect(selected.value())
           self.back()
 
       menuSection['scroll'] = menuSection['scroll'] % len(menuSection['items'])
@@ -133,7 +136,14 @@ class Display:
           item = menuSection['items'][v]
 
           self.draw.text((x, y), item.label, font=self.font, fill=1 if i != 1 else 0)
-          if len(item.items) > 0: self.triangle(y + 2, color=1 if i != 1 else 0)
+
+          icon = item.icon
+          if item.parent != None and item.parent.value != None and item.value != None:
+            if item.parent.value() == item.value(): icon = Icons['check']
+
+          if icon != None:
+            icon = ImageOps.invert(icon.convert('RGB')).convert('P') if i == 1 else icon
+            self.image.paste(icon, (116, y + 1, 116 + 10, y + 11))
 
           y += 10
           i += 1

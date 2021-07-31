@@ -7,7 +7,8 @@ import pytz
 import palettes
 
 # File path of settings file
-settingsFile = Path(str(Path(__file__).parent) + '/settings.p')
+rootPath = str(Path(__file__).parent)
+settingsFile = Path(rootPath + '/settings.p')
 
 # PLAYING_MODE Options
 class PlayMode(Enum):
@@ -94,8 +95,11 @@ class Configuration:
     # in the middle of the update cycle. We should technically only need 2 updates, but using 3 just in case. Plus, it adds a nice fade
     self.PALETTE_DIRTY = 3
 
+    self.save()
+
   def updateValue(self, name, value):
     self.TO_UPDATE[name] = value
+    self.save()
 
   def load(self):
     if settingsFile.exists():
