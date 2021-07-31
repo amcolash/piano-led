@@ -6,31 +6,40 @@ import RPi.GPIO as GPIO
 import time
 
 from config import AmbientMode, Config, PlayMode
+from menu_item import MenuItem
 from palettes import Palette
-
+from util import enumName
 
 BUTTON1 = 13
 BUTTON2 = 19
 BUTTON3 = 26
 
+mainMenu = [
+  MenuItem('Nested', items=[
+    MenuItem('Color Palette', lambda value: Config.updatePalette(value), options=list(Palette)),
+    MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), options=list(PlayMode)),
+    MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), options=list(AmbientMode)),
+  ])
+]
+
 class Display:
   def __init__(self):
     self.displayOn = False
-    self.debounce = time.time()
+    self.lastButton = time.time()
 
-    # TODO: Move menu to a new class?
-    self.menu = [ 'Palette', 'Play', 'Ambient' ]
-    self.scroll = 0
     self.dirty = True
+
+    self.menu = [{'scroll': 0, 'items': mainMenu}]
+    self.updatedMenu = None
 
     # Set up GPIO Pins
     GPIO.setup(BUTTON1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(BUTTON2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(BUTTON3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    GPIO.add_event_detect(BUTTON1, GPIO.FALLING, callback=self.button_callback)
-    GPIO.add_event_detect(BUTTON2, GPIO.FALLING, callback=self.button_callback)
-    GPIO.add_event_detect(BUTTON3, GPIO.FALLING, callback=self.button_callback)
+    GPIO.add_event_detect(BUTTON1, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    GPIO.add_event_detect(BUTTON2, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    GPIO.add_event_detect(BUTTON3, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
 
     # Init i2c bus
     i2c = busio.I2C(SCL, SDA)
@@ -58,66 +67,76 @@ class Display:
 
   # Handle when a button is pressed
   def button_callback(self, channel):
-    if time.time() - self.debounce > 0.25:
-      if self.displayOn:
-        if channel == BUTTON3:
-          self.scroll -= 1
-        elif channel == BUTTON1:
-          self.scroll += 1
-        elif channel == BUTTON2:
-          # TODO: Make enum selection generic
-          if self.menu[self.scroll] == 'Palette':
-            pals = list(Palette)
-            current = pals.index(Config.CURRENT_PALETTE)
-            Config.TO_UPDATE['CURRENT_PALETTE'] = pals[(current + 1) % len(pals)]
-            # Config.updatePalette(pals[(current + 1) % len(pals)])
-          elif self.menu[self.scroll] == 'Play':
-            mode = list(PlayMode)
-            current = mode.index(Config.PLAY_MODE)
-            Config.TO_UPDATE['PLAY_MODE'] = mode[(current + 1) % len(mode)]
-            # Config.PLAY_MODE = mode[(current + 1) % len(mode)]
-          elif self.menu[self.scroll] == 'Ambient':
-            mode = list(AmbientMode)
-            current = mode.index(Config.AMBIENT_MODE)
-            Config.TO_UPDATE['AMBIENT_MODE'] = mode[(current + 1) % len(mode)]
-            # Config.AMBIENT_MODE = mode[(current + 1) % len(mode)]
-            # Config.PALETTE_DIRTY = 3 # force a color palette refresh when changing ambient modes
+    self.lastButton = time.time()
 
-      self.dirty = True
-      self.debounce = time.time()
+    if self.displayOn:
+      menuSection = self.menu[len(self.menu) - 1]
 
-    self.scroll = self.scroll % len(self.menu)
+      if channel == BUTTON3:
+        menuSection['scroll'] -= 1
+      elif channel == BUTTON1:
+        menuSection['scroll'] += 1
+      elif channel == BUTTON2:
+        selected = menuSection['items'][menuSection['scroll']]
+
+        if len(selected.options) > 0:
+          options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, i), selected.options))
+          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back')] + options}]
+        elif len(selected.items) > 0:
+          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back')] + selected.items}]
+        else:
+          if selected.onSelect != None: selected.onSelect(selected.value)
+          self.back()
+
+      menuSection['scroll'] = menuSection['scroll'] % len(menuSection['items'])
+
+    self.dirty = True
+
+  def back(self):
+    self.updatedMenu = self.menu[:]
+    self.updatedMenu.pop()
+
+  def triangle(self, top=15, left=116, color=1):
+    self.draw.polygon([(left, top), (left, top + 6), (left + 5, top + 3)], fill=color)
 
   def update(self):
     # Turn off the display after 30 seconds, keep track of previous to force a refresh
     prevDisplayOn = self.displayOn
-    self.displayOn = time.time() - self.debounce < 30
+    self.displayOn = time.time() - self.lastButton < 30
 
-    if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn:
+    if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn or self.updatedMenu != None:
+      if self.updatedMenu:
+        self.menu = self.updatedMenu
+        self.updatedMenu = None
+
       # Draw a black filled box to clear the image.
       self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
       if self.displayOn:
-        toShow = [(self.scroll - 1) % len(self.menu), self.scroll, (self.scroll + 1) % len(self.menu)]
+        # Selction rectangle
+        self.draw.rectangle((0, 11, self.width, 22), outline=0, fill=1)
+
+        menuSection = self.menu[len(self.menu) - 1]
 
         x = 10
-        y = 2
-        for i in toShow:
-          value = ""
+        y = 1
+        i = 0
 
-          if self.menu[i] == 'Palette':
-            value = Config.CURRENT_PALETTE.name
-          elif self.menu[i] == 'Play':
-            value = Config.PLAY_MODE.name
-          elif self.menu[i] == 'Ambient':
-            value = Config.AMBIENT_MODE.name
-
-          self.draw.text((x, y), self.menu[i] + ": " + value, font=self.font, fill=1)
+        if len(menuSection['items']) > 1:
+          toShow = [(menuSection['scroll'] - 1) % len(menuSection['items']), menuSection['scroll'], (menuSection['scroll'] + 1) % len(menuSection['items'])]
+        else:
+          toShow = [0]
           y += 10
+          i = 1
 
-        # scrollTop = scroll * 8 + 2
-        scrollTop = 15
-        self.draw.polygon([(0,scrollTop), (0, scrollTop + 6), (5,scrollTop + 3)], fill=1)
+        for v in toShow:
+          item = menuSection['items'][v]
+
+          self.draw.text((x, y), item.label, font=self.font, fill=1 if i != 1 else 0)
+          if len(item.items) > 0: self.triangle(y + 2, color=1 if i != 1 else 0)
+
+          y += 10
+          i += 1
 
       self.disp.image(self.image)
       self.disp.show()

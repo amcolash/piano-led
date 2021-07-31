@@ -94,6 +94,9 @@ class Configuration:
     # in the middle of the update cycle. We should technically only need 2 updates, but using 3 just in case. Plus, it adds a nice fade
     self.PALETTE_DIRTY = 3
 
+  def updateValue(self, name, value):
+    self.TO_UPDATE[name] = value
+
   def load(self):
     if settingsFile.exists():
       loaded = pickle.load(open(settingsFile, "rb"))

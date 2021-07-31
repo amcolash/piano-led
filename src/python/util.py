@@ -7,3 +7,6 @@ def logTime(start, label):
 
 def niceTime():
   return str(datetime.datetime.now(Config.TIMEZONE).replace(microsecond=0)).replace('-07:00', '')
+
+def enumName(enum):
+  return enum.name.replace('_', ' ').title()
