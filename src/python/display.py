@@ -15,10 +15,11 @@ BUTTON2 = 19
 BUTTON3 = 26
 
 mainMenu = [
-  MenuItem('Nested', icon=Icons['triangle'], items=[
+  MenuItem('Settings', icon=Icons['triangle'], items=[
     MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette)),
     MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode)),
     MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
+    MenuItem('Ambient Enabled',  lambda value: Config.updateValue('AMBIENT_ENABLED', not Config.AMBIENT_ENABLED), value=lambda: Config.AMBIENT_ENABLED),
   ])
 ]
 
@@ -80,16 +81,16 @@ class Display:
         selected = menuSection['items'][menuSection['scroll']]
 
         if len(selected.items) > 0:
-          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', icon=Icons['back'])] + selected.items}]
+          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', icon=Icons['back'], parent=selected)] + selected.items}]
         elif len(selected.options) > 0:
           scroll = 1
           if selected.value != None: scroll = selected.options.index(selected.value()) + 1
 
           options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, value=lambda: i, parent=selected), selected.options))
-          self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', icon=Icons['back'])] + options}]
+          self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', icon=Icons['back'], parent=selected)] + options}]
         else:
           if selected.onSelect != None and selected.value != None: selected.onSelect(selected.value())
-          self.back()
+          if selected.parent: self.back()
 
       menuSection['scroll'] = menuSection['scroll'] % len(menuSection['items'])
 
@@ -138,8 +139,9 @@ class Display:
           self.draw.text((x, y), item.label, font=self.font, fill=1 if i != 1 else 0)
 
           icon = item.icon
-          if item.parent != None and item.parent.value != None and item.value != None:
-            if item.parent.value() == item.value(): icon = Icons['check']
+          if item.value != None:
+            if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['check']
+            elif item.value() == True: icon = Icons['check']
 
           if icon != None:
             icon = ImageOps.invert(icon.convert('RGB')).convert('P') if i == 1 else icon

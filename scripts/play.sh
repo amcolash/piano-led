@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT_DIR=$(dirname $(readlink -f $0))
-PORT="20:0"
+PORT="System MIDI In"
 
 function playDir() {
   for f in `find "$1" -name '*.mid' -print | shuf`

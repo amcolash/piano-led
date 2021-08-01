@@ -84,6 +84,7 @@ class Configuration:
     self.NIGHT_MODE_START_HOUR = 1 # Starting hour when night mode begins (inclusive)
     self.NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
     self.AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
+    self.AMBIENT_ENABLED = True
 
     self.CYCLE_SPEED = 0.15
 
@@ -99,6 +100,8 @@ class Configuration:
 
   def updateValue(self, name, value):
     self.TO_UPDATE[name] = value
+    if name == 'AMBIENT_MODE':
+      self.TO_UPDATE['PALETTE_DIRTY'] = 3
     self.save()
 
   def load(self):

@@ -82,9 +82,6 @@ class Leds:
           elif Config.AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
             led['target1'] = breath
 
-          elif Config.AMBIENT_MODE == AmbientMode.OFF:
-            led['target1'] = [0, 0, 0]
-
         # Ripple
         if not ambient and Config.PLAY_MODE == PlayMode.RIPPLE and l in led['state']:
           # print(l)
@@ -95,10 +92,12 @@ class Leds:
             if u >= 0 and u < Config.LED_COUNT:
               cls.leds[u]['ripple'] = True
 
+        ambientColor = led['target1'] if Config.AMBIENT_ENABLED else [0, 0, 0]
+
         if Config.PLAY_MODE == PlayMode.RIPPLE:
-          currentTarget = led['target2'] if led['ripple'] else led['target1']
+          currentTarget = led['target2'] if led['ripple'] else ambientColor
         else:
-          currentTarget = led['target2'] if len(led['state']) > 0 else led['target1']
+          currentTarget = led['target2'] if len(led['state']) > 0 else ambientColor
 
         # keep LEDs off at night
         if Config.NIGHT_MODE_ENABLED and hour >= Config.NIGHT_MODE_START_HOUR and hour < Config.NIGHT_MODE_END_HOUR and ambient:
