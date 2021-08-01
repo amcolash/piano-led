@@ -6,11 +6,13 @@ rootPath = str(Path(__file__).parent)
 Triangle = Image.open(Path(rootPath + '/../img/triangle.png'))
 Back = Image.open(Path(rootPath + '/../img/back.png'))
 Check = Image.open(Path(rootPath + '/../img/checkmark.png'))
+Music = Image.open(Path(rootPath + '/../img/music.png'))
 
 Icons = {
   'triangle': Triangle,
   'back': Back,
-  'check': Check
+  'check': Check,
+  'music': Music
 }
 
 class MenuItem:

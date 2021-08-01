@@ -15,12 +15,16 @@ BUTTON2 = 19
 BUTTON3 = 26
 
 mainMenu = [
-  MenuItem('Settings', icon=Icons['triangle'], items=[
+  MenuItem('Music', icon=Icons['music']),
+  MenuItem('Settings', items=[
     MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette)),
     MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode)),
-    MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
-    MenuItem('Ambient Enabled',  lambda value: Config.updateValue('AMBIENT_ENABLED', not Config.AMBIENT_ENABLED), value=lambda: Config.AMBIENT_ENABLED),
-  ])
+    MenuItem('Ambient', items=[
+      MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
+      MenuItem('Ambient Enabled',  lambda value: Config.updateValue('AMBIENT_ENABLED', not Config.AMBIENT_ENABLED), value=lambda: Config.AMBIENT_ENABLED),
+      MenuItem('Night Mode',  lambda value: Config.updateValue('NIGHT_MODE_ENABLED', not Config.NIGHT_MODE_ENABLED), value=lambda: Config.NIGHT_MODE_ENABLED),
+    ])
+  ]),
 ]
 
 class Display:
@@ -81,13 +85,13 @@ class Display:
         selected = menuSection['items'][menuSection['scroll']]
 
         if len(selected.items) > 0:
-          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', icon=Icons['back'], parent=selected)] + selected.items}]
+          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', parent=selected)] + selected.items}]
         elif len(selected.options) > 0:
           scroll = 1
           if selected.value != None: scroll = selected.options.index(selected.value()) + 1
 
           options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, value=lambda: i, parent=selected), selected.options))
-          self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', icon=Icons['back'], parent=selected)] + options}]
+          self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', parent=selected)] + options}]
         else:
           if selected.onSelect != None and selected.value != None: selected.onSelect(selected.value())
           if selected.parent: self.back()
@@ -138,7 +142,10 @@ class Display:
 
           self.draw.text((x, y), item.label, font=self.font, fill=1 if i != 1 else 0)
 
+
           icon = item.icon
+          if len(item.items) > 0: icon = Icons['triangle']
+          if item.label == 'Back': icon = Icons['back']
           if item.value != None:
             if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['check']
             elif item.value() == True: icon = Icons['check']
