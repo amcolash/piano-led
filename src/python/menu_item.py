@@ -3,16 +3,20 @@ from PIL import Image
 
 rootPath = str(Path(__file__).parent)
 
-Triangle = Image.open(Path(rootPath + '/../img/triangle.png'))
 Back = Image.open(Path(rootPath + '/../img/back.png'))
 Check = Image.open(Path(rootPath + '/../img/checkmark.png'))
 Music = Image.open(Path(rootPath + '/../img/music.png'))
+Shuffle = Image.open(Path(rootPath + '/../img/shuffle.png'))
+Stop = Image.open(Path(rootPath + '/../img/stop.png'))
+Triangle = Image.open(Path(rootPath + '/../img/triangle.png'))
 
 Icons = {
-  'triangle': Triangle,
   'back': Back,
   'check': Check,
-  'music': Music
+  'music': Music,
+  'shuffle': Shuffle,
+  'stop': Stop,
+  'triangle': Triangle,
 }
 
 class MenuItem:

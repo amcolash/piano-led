@@ -6,6 +6,7 @@ from display import Display
 from i2c import I2C
 from leds import Leds
 from midi_ports import MidiPorts
+from music import Music
 import util
 
 try:
@@ -36,6 +37,7 @@ try:
     MidiPorts.update()
     Config.update()
     Leds.updateLeds()
+    Music.update()
     Disp.update()
 
     # time.sleep(0.0005)

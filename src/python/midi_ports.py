@@ -50,6 +50,14 @@ class MidiPorts:
         print(sys.exc_info())
 
   @classmethod
+  def stopAll(cls):
+    if cls.midi_out_piano and cls.midi_out_piano.is_port_open():
+      for c in range(15):
+        command = (0b1000 << 4) + c # note off for each of the 16 channels
+        for n in range(127):
+          cls.midi_out_piano.send_message([command, n, 0])
+
+  @classmethod
   def cleanup(cls):
     cls.midi_in_piano.close_port()
     cls.midi_out_piano.close_port()

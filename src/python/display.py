@@ -7,6 +7,7 @@ import time
 
 from config import AmbientMode, Config, PlayMode
 from menu_item import Icons, MenuItem
+from music import Music
 from palettes import Palette
 from util import enumName
 
@@ -15,7 +16,7 @@ BUTTON2 = 19
 BUTTON3 = 26
 
 mainMenu = [
-  MenuItem('Music', icon=Icons['music']),
+  MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
   MenuItem('Settings', items=[
     MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette)),
     MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode)),
@@ -94,6 +95,8 @@ class Display:
           self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', parent=selected)] + options}]
         else:
           if selected.onSelect != None and selected.value != None: selected.onSelect(selected.value())
+          elif selected.onSelect != None: selected.onSelect()
+
           if selected.parent: self.back()
 
       menuSection['scroll'] = menuSection['scroll'] % len(menuSection['items'])
@@ -143,12 +146,13 @@ class Display:
           self.draw.text((x, y), item.label, font=self.font, fill=1 if i != 1 else 0)
 
 
-          icon = item.icon
+          icon = None
           if len(item.items) > 0: icon = Icons['triangle']
           if item.label == 'Back': icon = Icons['back']
           if item.value != None:
             if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['check']
             elif item.value() == True: icon = Icons['check']
+          if item.icon != None: icon = item.icon
 
           if icon != None:
             icon = ImageOps.invert(icon.convert('RGB')).convert('P') if i == 1 else icon
