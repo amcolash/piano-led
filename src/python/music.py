@@ -39,7 +39,7 @@ class Music:
 
   @classmethod
   def stop(cls):
-    print('stop')
+    print('Stopped Music')
     cls.nowPlaying = None
     cls.playlist = []
 
@@ -53,7 +53,7 @@ class Music:
   def update(cls):
     if len(cls.playlist) > 0 and cls.process == None:
       Music.play(cls.playlist.pop(0))
-    else:
+    elif cls.process == None:
       cls.nowPlaying = None
 
     try:
@@ -61,11 +61,10 @@ class Music:
         # Do something else
         return_code = cls.process.poll()
         if return_code is not None:
-          print('RETURN CODE', return_code)
-          # Process has finished, read rest of the output
-          for output in cls.process.stdout.readlines():
-            print(output.strip())
-
+          # print('RETURN CODE', return_code)
+          # # Process has finished, read rest of the output
+          # for output in cls.process.stdout.readlines():
+          #   print(output.strip())
           cls.process = None
     except:
       print('Something went wrong checking process!')
@@ -74,21 +73,30 @@ class Music:
         cls.process = None
 
   @classmethod
-  def getFiles(cls, folder):
+  def getFiles(cls, folder, parent):
     files = list(glob.glob(folder + '/**/*.mid', recursive=True))
     files.sort()
 
-    return [MenuItem('Shuffle', lambda: Music.queue(folder=folder), icon=Icons['shuffle'])] + list(map(lambda f: MenuItem(Path(f).stem, lambda value: Music.queue(file=value), value=lambda: f), files))
+    items = [MenuItem('Shuffle', lambda: Music.queue(folder=folder), icon=Icons['shuffle'], parent=parent)]
+    items += list(map(lambda f: MenuItem(Path(f).stem, lambda value: Music.queue(file=value), value=lambda: f, parent=parent), files))
+
+    return items
 
   @classmethod
   def getMusic(cls):
     folders = list(glob.glob(musicRoot + '/*'))
     folders.sort()
 
-    menu = list(map(lambda f: MenuItem(Path(f).stem, None, value=lambda: f, items=Music.getFiles(f)), folders))
     menu = [
+      MenuItem('Now Playing', icon=Icons['music'], value=lambda: Path(cls.nowPlaying).stem if cls.nowPlaying != None else None, visible=lambda: cls.nowPlaying != None, showValue=True),
       MenuItem('Shuffle', lambda: Music.queue(folder=musicRoot), icon=Icons['shuffle']),
-      MenuItem('Stop', lambda: Music.stop(), icon=Icons['stop'])
-    ] + menu
+      MenuItem('Stop', lambda: Music.stop(), icon=Icons['stop'], visible=lambda: cls.nowPlaying != None)
+    ]
+
+    # can't use map since we are passing in the parent
+    for f in folders:
+      item = MenuItem(Path(f).stem, None, value=lambda: f, visible=lambda: cls.nowPlaying == None)
+      item.items = Music.getFiles(f, item)
+      menu.append(item)
 
     return menu

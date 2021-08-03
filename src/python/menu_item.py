@@ -20,7 +20,7 @@ Icons = {
 }
 
 class MenuItem:
-  def __init__(self, label, onSelect=None, value=None, icon=None, options=[], items=[], parent=None):
+  def __init__(self, label, onSelect=None, value=None, icon=None, options=[], items=[], parent=None, visible=None, showValue=False):
     self.label = label # label for the item
     self.onSelect = onSelect # function when selected, (value) => {}
     self.value = value # function to get current value, () => value
@@ -28,6 +28,8 @@ class MenuItem:
     self.options = options # a list of options to select from for a value
     self.items = items # a list of MenuItems
     self.parent = parent # parent MenuItem
+    self.visible = visible # function to check if the item is visible in the list
+    self.showValue = showValue # if the MenuItem should instead show value
 
   def __repr__(self):
-    return self.label
+    return str(self.value()) if self.value != None and self.showValue else self.label

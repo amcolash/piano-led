@@ -77,13 +77,14 @@ class Display:
 
     if self.displayOn:
       menuSection = self.menu[len(self.menu) - 1]
+      items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
 
       if channel == BUTTON3:
         menuSection['scroll'] -= 1
       elif channel == BUTTON1:
         menuSection['scroll'] += 1
       elif channel == BUTTON2:
-        selected = menuSection['items'][menuSection['scroll']]
+        selected = items[menuSection['scroll']]
 
         if len(selected.items) > 0:
           self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', parent=selected)] + selected.items}]
@@ -99,7 +100,7 @@ class Display:
 
           if selected.parent: self.back()
 
-      menuSection['scroll'] = menuSection['scroll'] % len(menuSection['items'])
+      menuSection['scroll'] = menuSection['scroll'] % len(items)
 
     self.dirty = True
 
@@ -129,26 +130,31 @@ class Display:
 
         menuSection = self.menu[len(self.menu) - 1]
 
+        items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
+        scroll = menuSection['scroll'] % len(items) # just in case there are less items and we need to wrap from filtered values
+
         x = 10
         y = 1
         i = 0
 
-        if len(menuSection['items']) > 1:
-          toShow = [(menuSection['scroll'] - 1) % len(menuSection['items']), menuSection['scroll'], (menuSection['scroll'] + 1) % len(menuSection['items'])]
+        if len(items) > 1:
+          toShow = [(scroll - 1) % len(items), scroll, (scroll + 1) % len(items)]
         else:
           toShow = [0]
           y += 10
           i = 1
 
         for v in toShow:
-          item = menuSection['items'][v]
+          item = items[v]
 
-          self.draw.text((x, y), item.label, font=self.font, fill=1 if i != 1 else 0)
+          label = item.label
+          if item.value != None and item.showValue: label = item.value()
 
+          self.draw.text((x, y), label, font=self.font, fill=1 if i != 1 else 0)
 
           icon = None
           if len(item.items) > 0: icon = Icons['triangle']
-          if item.label == 'Back': icon = Icons['back']
+          if label == 'Back': icon = Icons['back']
           if item.value != None:
             if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['check']
             elif item.value() == True: icon = Icons['check']

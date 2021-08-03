@@ -28,7 +28,7 @@ class MidiInputHandler(object):
     event = message[0] >> 4
 
     # Only handle ON (0b1001) and OFF (0b1000) events on ANY channel
-    if event == 0b1001 or event == 0b1000:
+    if (event == 0b1001 or event == 0b1000) and message[1] >= Config.MIN_KEY and message[1] <= Config.MAX_KEY:
       # print("[%s] @%0.6f %r %s" % (self.port, self.wallclock, message, is_on))
 
       # Forward piano midi messages to leonardo
