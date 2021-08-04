@@ -108,9 +108,14 @@ class Configuration:
     if settingsFile.exists():
       loaded = pickle.load(open(settingsFile, "rb"))
 
+      print(str(loaded.NIGHT_MODE_ENABLED))
+
       self.updatePalette(loaded.CURRENT_PALETTE)
+      self.AMBIENT_ENABLED = loaded.AMBIENT_ENABLED
       self.AMBIENT_MODE = loaded.AMBIENT_MODE
+      self.NIGHT_MODE_ENABLED = loaded.NIGHT_MODE_ENABLED
       self.PLAY_MODE = loaded.PLAY_MODE
+      self.CYCLE_SPEED = loaded.CYCLE_SPEED
 
   def save(self):
     pickle.dump(self, open(settingsFile, "wb"))
@@ -137,4 +142,3 @@ class Configuration:
       self.DIRTY = True
 
 Config = Configuration()
-Config.load()

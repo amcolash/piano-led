@@ -3,6 +3,7 @@ from pathlib import Path
 import random
 import subprocess
 
+from config import Config
 from menu_item import Icons, MenuItem
 from midi_ports import MidiPorts
 
@@ -37,6 +38,8 @@ class Music:
       stdout=subprocess.PIPE,
       universal_newlines=True)
 
+    Config.DIRTY = True
+
   @classmethod
   def stop(cls):
     print('Stopped Music')
@@ -48,6 +51,7 @@ class Music:
       cls.process = None
 
     MidiPorts.stopAll()
+    Config.DIRTY = True
 
   @classmethod
   def update(cls):
@@ -55,6 +59,7 @@ class Music:
       Music.play(cls.playlist.pop(0))
     elif cls.process == None:
       cls.nowPlaying = None
+      # Config.DIRTY = True
 
     try:
       if cls.process != None:

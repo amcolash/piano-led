@@ -59,9 +59,12 @@ class MidiPorts:
 
   @classmethod
   def cleanup(cls):
+    cls.stopAll()
+
     cls.midi_in_piano.close_port()
     cls.midi_out_piano.close_port()
     cls.midi_in_system.close_port()
+
     del cls.midi_in_piano
     del cls.midi_out_piano
     del cls.midi_in_system

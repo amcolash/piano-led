@@ -15,6 +15,8 @@ BUTTON1 = 13
 BUTTON2 = 19
 BUTTON3 = 26
 
+TEXT_SCROLL_DELAY = 3
+
 mainMenu = [
   MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
   MenuItem('Settings', items=[
@@ -22,8 +24,9 @@ mainMenu = [
     MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode)),
     MenuItem('Ambient', items=[
       MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
-      MenuItem('Ambient Enabled',  lambda value: Config.updateValue('AMBIENT_ENABLED', not Config.AMBIENT_ENABLED), value=lambda: Config.AMBIENT_ENABLED),
-      MenuItem('Night Mode',  lambda value: Config.updateValue('NIGHT_MODE_ENABLED', not Config.NIGHT_MODE_ENABLED), value=lambda: Config.NIGHT_MODE_ENABLED),
+      MenuItem('Ambient Enabled',  lambda value: Config.updateValue('AMBIENT_ENABLED', not value), value=lambda: Config.AMBIENT_ENABLED),
+      MenuItem('Night Mode',  lambda value: Config.updateValue('NIGHT_MODE_ENABLED', not value), value=lambda: Config.NIGHT_MODE_ENABLED),
+      MenuItem('Cycle Speed',  lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.3, 0.75, 1, 2]),
     ])
   ]),
 ]
@@ -34,6 +37,8 @@ class Display:
     self.lastButton = time.time()
 
     self.dirty = True
+    self.textScroll = 0
+    self.textTimer = time.time()
 
     self.menu = [{'scroll': 0, 'items': mainMenu}]
     self.updatedMenu = None
@@ -102,6 +107,8 @@ class Display:
 
       menuSection['scroll'] = menuSection['scroll'] % len(items)
 
+    self.textTimer = time.time() + TEXT_SCROLL_DELAY
+    self.textScroll = 0
     self.dirty = True
 
   def back(self):
@@ -116,22 +123,40 @@ class Display:
     prevDisplayOn = self.displayOn
     self.displayOn = time.time() - self.lastButton < 30
 
-    if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn or self.updatedMenu != None:
-      if self.updatedMenu:
-        self.menu = self.updatedMenu
-        self.updatedMenu = None
+    if self.updatedMenu:
+      self.menu = self.updatedMenu
+      self.textScroll = 0
+      self.textTimer = time.time() + TEXT_SCROLL_DELAY
+      self.updatedMenu = None
+      self.dirty = True
 
+    if Config.DIRTY:
+      self.textScroll = 0
+      self.textTimer = time.time() + TEXT_SCROLL_DELAY
+
+    menuSection = self.menu[len(self.menu) - 1]
+
+    items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
+    scroll = menuSection['scroll'] % len(items) # just in case there are less items and we need to wrap from filtered values
+
+    selectedLabel = items[scroll].label
+    if items[scroll].value != None and items[scroll].showValue: selectedLabel = items[scroll].value()
+    selectedLabel = selectedLabel.replace('_', ' ').title()
+
+    textScrolling = False
+    if len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
+      self.textScroll += 3
+      self.textTimer = time.time() + 0.6
+      self.dirty = True
+      textScrolling = True
+
+    if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn:
       # Draw a black filled box to clear the image.
       self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
 
       if self.displayOn:
         # Selction rectangle
-        self.draw.rectangle((0, 11, self.width, 22), outline=0, fill=1)
-
-        menuSection = self.menu[len(self.menu) - 1]
-
-        items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
-        scroll = menuSection['scroll'] % len(items) # just in case there are less items and we need to wrap from filtered values
+        self.draw.rectangle((0, 12, self.width, 21), fill=1)
 
         x = 10
         y = 1
@@ -149,15 +174,25 @@ class Display:
 
           label = item.label
           if item.value != None and item.showValue: label = item.value()
+          label = label.replace('_', ' ').title()
 
-          self.draw.text((x, y), label, font=self.font, fill=1 if i != 1 else 0)
+          if i == 1 and len(label) > 17:
+            label += '     '
+            offset = self.textScroll % len(label)
+            labelStart = label[0 : offset]
+            labelEnd = label[offset :]
+            self.draw.text((x, y), labelEnd + labelStart, font=self.font, fill=0)
+          else:
+            self.draw.text((x, y), label, font=self.font, fill=0 if i == 1 else 1)
+
+          self.draw.rectangle((115, y + 1, self.width, y + 10), fill=1 if i == 1 else 0)
 
           icon = None
           if len(item.items) > 0: icon = Icons['triangle']
           if label == 'Back': icon = Icons['back']
           if item.value != None:
             if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['check']
-            elif item.value() == True: icon = Icons['check']
+            elif item.value() == True and type(item.value()) == bool: icon = Icons['check']
           if item.icon != None: icon = item.icon
 
           if icon != None:
@@ -168,7 +203,10 @@ class Display:
           i += 1
 
       self.disp.image(self.image)
+
+      # self.disp.fill_rect(0, 12, self.width, 10, 1)
+      # self.disp.text('Testing String Here', 10, 13, 0, size=1)
       self.disp.show()
 
-      Config.DIRTY = False
-      self.dirty = False
+    Config.DIRTY = False
+    self.dirty = False
