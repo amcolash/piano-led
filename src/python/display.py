@@ -11,9 +11,9 @@ from music import Music
 from palettes import Palette
 from util import enumName
 
-BUTTON1 = 13
-BUTTON2 = 19
-BUTTON3 = 26
+DOWN_BUTTON = 12
+ENTER_BUTTON = 8
+UP_BUTTON = 7
 
 TEXT_SCROLL_DELAY = 3
 
@@ -44,13 +44,13 @@ class Display:
     self.updatedMenu = None
 
     # Set up GPIO Pins
-    GPIO.setup(BUTTON1, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(BUTTON2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    GPIO.setup(BUTTON3, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(DOWN_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(ENTER_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(UP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    GPIO.add_event_detect(BUTTON1, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
-    GPIO.add_event_detect(BUTTON2, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
-    GPIO.add_event_detect(BUTTON3, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    GPIO.add_event_detect(DOWN_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    GPIO.add_event_detect(ENTER_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    GPIO.add_event_detect(UP_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
 
     # Init i2c bus
     i2c = busio.I2C(SCL, SDA)
@@ -84,11 +84,11 @@ class Display:
       menuSection = self.menu[len(self.menu) - 1]
       items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
 
-      if channel == BUTTON3:
+      if channel == UP_BUTTON:
         menuSection['scroll'] -= 1
-      elif channel == BUTTON1:
+      elif channel == DOWN_BUTTON:
         menuSection['scroll'] += 1
-      elif channel == BUTTON2:
+      elif channel == ENTER_BUTTON:
         selected = items[menuSection['scroll']]
 
         if len(selected.items) > 0:

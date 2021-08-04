@@ -32,6 +32,8 @@ class Music:
 
     if cls.process != None:
       Music.stop()
+    else:
+      MidiPorts.stopAll()
 
     cls.nowPlaying = file
     cls.process = subprocess.Popen(['aplaymidi', '--port=System MIDI In', file],
