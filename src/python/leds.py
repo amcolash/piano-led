@@ -24,7 +24,7 @@ class Leds:
   def updateLeds(cls):
     try:
       start = time.time()
-      ambient = time.time() - cls.lastPlayed > 10
+      ambient = time.time() - cls.lastPlayed > Config.NIGHT_MODE_TIMEOUT
       hour = datetime.datetime.now(Config.TIMEZONE).hour
 
       if Config.AMBIENT_MODE == AmbientMode.BOUNCE or Config.AMBIENT_MODE == AmbientMode.PALETTE_BREATH:

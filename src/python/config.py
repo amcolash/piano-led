@@ -1,14 +1,24 @@
 from enum import Enum, auto
+import jsonpickle
 import os
 from pathlib import Path
-import pickle
 import pytz
+import sys
 
 import palettes
 
 # File path of settings file
 rootPath = str(Path(__file__).parent)
-settingsFile = Path(rootPath + '/settings.p')
+settingsFile = Path(rootPath + '/settings.json')
+
+savedValues = [
+  'CURRENT_PALETTE',
+  'AMBIENT_ENABLED',
+  'AMBIENT_MODE',
+  'NIGHT_MODE_ENABLED',
+  'PLAY_MODE',
+  'CYCLE_SPEED',
+]
 
 # PLAYING_MODE Options
 class PlayMode(Enum):
@@ -80,15 +90,16 @@ class Configuration:
     self.PALETTE_DIRTY = 0
 
     # Ambient Configuration
+    self.AMBIENT_ENABLED = True
+    self.AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
     self.NIGHT_MODE_ENABLED = True
+    self.NIGHT_MODE_TIMEOUT = 10
     self.NIGHT_MODE_START_HOUR = 1 # Starting hour when night mode begins (inclusive)
     self.NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
-    self.AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
-    self.AMBIENT_ENABLED = True
 
     self.CYCLE_SPEED = 0.15
 
-  def updatePalette(self, pal):
+  def updatePalette(self, pal, save=True):
     self.CURRENT_PALETTE = pal
     self.PALETTE = palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)
 
@@ -96,7 +107,8 @@ class Configuration:
     # in the middle of the update cycle. We should technically only need 2 updates, but using 3 just in case. Plus, it adds a nice fade
     self.PALETTE_DIRTY = 3
 
-    self.save()
+    # Only save when we are intentionally changing this value
+    if save: self.save()
 
   def updateValue(self, name, value):
     self.TO_UPDATE[name] = value
@@ -105,18 +117,31 @@ class Configuration:
     self.save()
 
   def load(self):
-    if settingsFile.exists():
-      loaded = pickle.load(open(settingsFile, "rb"))
+    try:
+      if settingsFile.exists():
+        f = open(settingsFile, "r")
+        loaded = jsonpickle.decode(f.read())
 
-      self.updatePalette(loaded.CURRENT_PALETTE)
-      self.AMBIENT_ENABLED = loaded.AMBIENT_ENABLED
-      self.AMBIENT_MODE = loaded.AMBIENT_MODE
-      self.NIGHT_MODE_ENABLED = loaded.NIGHT_MODE_ENABLED
-      self.PLAY_MODE = loaded.PLAY_MODE
-      self.CYCLE_SPEED = loaded.CYCLE_SPEED
+        for s in savedValues:
+          if s == 'CURRENT_PALETTE':
+            self.updatePalette(loaded['CURRENT_PALETTE'], False)
+          else:
+            setattr(self, s, loaded[s])
+
+        # Just in case there is special logic used in the load, make sure we have latest
+        self.save()
+    except:
+      print('Failed to parse settings file', sys.exc_info()[0])
 
   def save(self):
-    pickle.dump(self, open(settingsFile, "wb"))
+    saved = {}
+    for s in savedValues:
+      saved[s] = getattr(self, s)
+
+    # encode as json
+    encoded = jsonpickle.encode(saved)
+    with open(settingsFile, "w") as f:
+      print(encoded, file=f)
 
   # This function is called every loop of the update to check if there are newly updated settings. Each is then modified and then after
   # all have been changed, the new config is saved. This prevents threading issues from the interrupt-based issues with button handlers.
