@@ -6,20 +6,26 @@ rootPath = str(Path(__file__).parent)
 Back = Image.open(Path(rootPath + '/../img/back.png'))
 Check = Image.open(Path(rootPath + '/../img/checkmark.png'))
 Music = Image.open(Path(rootPath + '/../img/music.png'))
+Reboot = Image.open(Path(rootPath + '/../img/reboot.png'))
+Restart = Image.open(Path(rootPath + '/../img/restart.png'))
 Shuffle = Image.open(Path(rootPath + '/../img/shuffle.png'))
 Shutdown = Image.open(Path(rootPath + '/../img/shutdown.png'))
 Speaker = Image.open(Path(rootPath + '/../img/speaker.png'))
 Stop = Image.open(Path(rootPath + '/../img/stop.png'))
+System = Image.open(Path(rootPath + '/../img/system.png'))
 Triangle = Image.open(Path(rootPath + '/../img/triangle.png'))
 
 Icons = {
   'back': Back,
   'check': Check,
   'music': Music,
+  'reboot': Reboot,
+  'restart': Restart,
   'shuffle': Shuffle,
   'shutdown': Shutdown,
   'speaker': Speaker,
   'stop': Stop,
+  'system': System,
   'triangle': Triangle,
 }
 

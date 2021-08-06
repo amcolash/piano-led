@@ -5,17 +5,18 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 import RPi.GPIO as GPIO
 import time
 
-from config import AmbientMode, Config, PlayMode
+from config import AmbientMode, Config, PendingAction, PlayMode
 from menu_item import Icons, MenuItem
 from music import Music
 from palettes import Palette
-from util import enumName, shutdown
+from util import enumName
 
 DOWN_BUTTON = 7
 ENTER_BUTTON = 8
 UP_BUTTON = 12
 
 TEXT_SCROLL_DELAY = 3
+DISPLAY_OFF_TIMEOUT = 30
 
 mainMenu = [
   MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
@@ -30,7 +31,11 @@ mainMenu = [
       MenuItem('Cycle Speed',  lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.3, 0.75, 1, 2]),
     ])
   ]),
-  MenuItem('Shutdown', lambda: shutdown(), icon=Icons['shutdown']),
+  MenuItem('System', items=[
+    MenuItem('Shutdown', lambda: Config.updateValue('PENDING_ACTION', PendingAction.SHUTDOWN), icon=Icons['shutdown']),
+    MenuItem('Reboot', lambda: Config.updateValue('PENDING_ACTION', PendingAction.REBOOT), icon=Icons['reboot']),
+    MenuItem('Restart Service', lambda: Config.updateValue('PENDING_ACTION', PendingAction.RESTART_SERVICE), icon=Icons['restart'])
+  ], icon=Icons['system']),
 ]
 
 class Display:
@@ -129,7 +134,7 @@ class Display:
   def update(self):
     # Turn off the display after 30 seconds, keep track of previous to force a refresh
     prevDisplayOn = self.displayOn
-    self.displayOn = time.time() - self.lastButton < 30
+    self.displayOn = time.time() - self.lastButton < DISPLAY_OFF_TIMEOUT
 
     if self.updatedMenu:
       self.menu = self.updatedMenu

@@ -38,6 +38,13 @@ class AmbientMode(Enum):
   PALETTE_CYCLE_SINGLE = auto()
   PALETTE_SCROLL = auto()
 
+# Pending system action
+class PendingAction(Enum):
+  NONE = auto()
+  SHUTDOWN = auto()
+  REBOOT = auto()
+  RESTART_SERVICE = auto()
+
 class Configuration:
   def __init__(self):
     ### Not restored on restart ###
@@ -46,7 +53,7 @@ class Configuration:
     self.TO_UPDATE = {}
     self.DIRTY = False
     self.SCROLL = None
-    self.SHUTDOWN = False
+    self.PENDING_ACTION = PendingAction.NONE
 
     # LED strip configuration:
     self.LED_COUNT = 148        # Number of LED pixels.

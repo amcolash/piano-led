@@ -1,7 +1,5 @@
 import cProfile
 import pstats
-from subprocess import call
-import sys
 import time
 
 from config import Config
@@ -10,7 +8,7 @@ from i2c import I2C
 from leds import Leds
 from midi_ports import MidiPorts
 from music import Music
-import util
+from util import niceTime, updatePendingActions
 
 class MidiPi:
   def __init__(self):
@@ -25,9 +23,7 @@ class MidiPi:
     Leds.updateLeds()
     Music.update()
     self.Disp.update()
-
-    if Config.SHUTDOWN:
-      self.shutdown()
+    updatePendingActions(self.Disp)
 
   def profile(self):
     # Just wait for keyboard interrupt, everything else is handled via the input callback.
@@ -43,14 +39,8 @@ class MidiPi:
     ps = pstats.Stats(profile)
     ps.print_stats()
 
-
-  def shutdown(self):
-    self.Disp.off()
-    call("sudo shutdown -h now", shell=True)
-    sys.exit(0)
-
 try:
-  print(util.niceTime() + ': Entering main loop. Press Control-C to exit.')
+  print(niceTime() + ': Entering main loop. Press Control-C to exit.')
 
   midiPi = MidiPi()
 
