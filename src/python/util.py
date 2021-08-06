@@ -14,3 +14,7 @@ def enumName(enum):
     return enum.name.replace('_', ' ').title()
   else:
     return str(enum)
+
+# Needs to be here since lambdas cannot contain assignment
+def shutdown():
+  Config.SHUTDOWN = True

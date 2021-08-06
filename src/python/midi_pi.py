@@ -1,5 +1,7 @@
 import cProfile
 import pstats
+from subprocess import call
+import sys
 import time
 
 from config import Config
@@ -24,6 +26,9 @@ class MidiPi:
     Music.update()
     self.Disp.update()
 
+    if Config.SHUTDOWN:
+      self.shutdown()
+
   def profile(self):
     # Just wait for keyboard interrupt, everything else is handled via the input callback.
     profile = cProfile.Profile()
@@ -37,6 +42,12 @@ class MidiPi:
     profile.disable()
     ps = pstats.Stats(profile)
     ps.print_stats()
+
+
+  def shutdown(self):
+    self.Disp.off()
+    call("sudo shutdown -h now", shell=True)
+    sys.exit(0)
 
 try:
   print(util.niceTime() + ': Entering main loop. Press Control-C to exit.')

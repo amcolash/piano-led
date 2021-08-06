@@ -9,11 +9,11 @@ from config import AmbientMode, Config, PlayMode
 from menu_item import Icons, MenuItem
 from music import Music
 from palettes import Palette
-from util import enumName
+from util import enumName, shutdown
 
-DOWN_BUTTON = 12
+DOWN_BUTTON = 7
 ENTER_BUTTON = 8
-UP_BUTTON = 7
+UP_BUTTON = 12
 
 TEXT_SCROLL_DELAY = 3
 
@@ -30,6 +30,7 @@ mainMenu = [
       MenuItem('Cycle Speed',  lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.3, 0.75, 1, 2]),
     ])
   ]),
+  MenuItem('Shutdown', lambda: shutdown(), icon=Icons['shutdown']),
 ]
 
 class Display:
@@ -58,6 +59,7 @@ class Display:
 
     # Create the SSD1306 OLED class.
     self.disp = adafruit_ssd1306.SSD1306_I2C(128, 32, i2c)
+    self.disp.rotate(2)
 
     # Clear display.
     self.disp.fill(0)
@@ -76,6 +78,11 @@ class Display:
 
     # Load default font.
     self.font = ImageFont.load_default()
+
+  def off(self):
+    # Clear display.
+    self.disp.fill(0)
+    self.disp.show()
 
   # Handle when a button is pressed
   def button_callback(self, channel):
@@ -138,6 +145,9 @@ class Display:
     menuSection = self.menu[len(self.menu) - 1]
 
     items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
+    if Config.SCROLL != None:
+      menuSection['scroll'] = Config.SCROLL
+      Config.SCROLL = None
     scroll = menuSection['scroll'] % len(items) # just in case there are less items and we need to wrap from filtered values
 
     selectedLabel = items[scroll].label

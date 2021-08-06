@@ -26,6 +26,8 @@ class Music:
     elif file != None:
       cls.playlist = [file]
 
+    Config.SCROLL = 1
+
   @classmethod
   def play(cls, file):
     print('Playing: ' + file)
@@ -54,6 +56,7 @@ class Music:
 
     MidiPorts.stopAll()
     Config.DIRTY = True
+    Config.SCROLL = 1
 
   @classmethod
   def update(cls):
@@ -95,7 +98,7 @@ class Music:
     folders.sort()
 
     menu = [
-      MenuItem('Now Playing', icon=Icons['music'], value=lambda: Path(cls.nowPlaying).stem if cls.nowPlaying != None else None, visible=lambda: cls.nowPlaying != None, showValue=True),
+      MenuItem('Now Playing', icon=Icons['speaker'], value=lambda: Path(cls.nowPlaying).stem if cls.nowPlaying != None else None, visible=lambda: cls.nowPlaying != None, showValue=True),
       MenuItem('Shuffle', lambda: Music.queue(folder=musicRoot), icon=Icons['shuffle']),
       MenuItem('Stop', lambda: Music.stop(), icon=Icons['stop'], visible=lambda: cls.nowPlaying != None)
     ]

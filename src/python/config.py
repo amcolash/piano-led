@@ -45,6 +45,8 @@ class Configuration:
     # Things that should be updated - note, these will be updated on the next cycle to avoid threading issues
     self.TO_UPDATE = {}
     self.DIRTY = False
+    self.SCROLL = None
+    self.SHUTDOWN = False
 
     # LED strip configuration:
     self.LED_COUNT = 148        # Number of LED pixels.

@@ -7,6 +7,8 @@ Back = Image.open(Path(rootPath + '/../img/back.png'))
 Check = Image.open(Path(rootPath + '/../img/checkmark.png'))
 Music = Image.open(Path(rootPath + '/../img/music.png'))
 Shuffle = Image.open(Path(rootPath + '/../img/shuffle.png'))
+Shutdown = Image.open(Path(rootPath + '/../img/shutdown.png'))
+Speaker = Image.open(Path(rootPath + '/../img/speaker.png'))
 Stop = Image.open(Path(rootPath + '/../img/stop.png'))
 Triangle = Image.open(Path(rootPath + '/../img/triangle.png'))
 
@@ -15,6 +17,8 @@ Icons = {
   'check': Check,
   'music': Music,
   'shuffle': Shuffle,
+  'shutdown': Shutdown,
+  'speaker': Speaker,
   'stop': Stop,
   'triangle': Triangle,
 }
