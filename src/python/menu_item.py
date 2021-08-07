@@ -8,10 +8,13 @@ imgPath = str(Path(rootPath + '/../img/').resolve())
 # Keep track of all of the icons
 Icons = {}
 
-files = list(glob.glob(imgPath + '/**/*.png', recursive=True))
-for f in files:
-  name = Path(f).stem
-  Icons[name] = Image.open(f)
+def loadIcons():
+  files = list(glob.glob(imgPath + '/**/*.png', recursive=True))
+  for f in files:
+    name = Path(f).stem
+    Icons[name] = Image.open(f)
+
+loadIcons()
 
 class MenuItem:
   def __init__(self, label, onSelect=None, value=None, icon=None, options=[], items=[], parent=None, visible=None, showValue=False):
