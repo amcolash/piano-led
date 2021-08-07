@@ -141,8 +141,10 @@ class Configuration:
         for s in savedValues:
           if s == 'CURRENT_PALETTE':
             self.updatePalette(loaded['CURRENT_PALETTE'], False)
-          else:
+          elif s in loaded:
             setattr(self, s, loaded[s])
+          else:
+            print('Could not load saved value: ' + s)
 
         # Just in case there is special logic used in the load, make sure we have latest
         self.save()
@@ -152,7 +154,10 @@ class Configuration:
   def save(self):
     saved = {}
     for s in savedValues:
-      saved[s] = getattr(self, s)
+      if hasattr(self, s):
+        saved[s] = getattr(self, s)
+      else:
+        print('Could not save unknown value: ' + s)
 
     # encode as json
     encoded = jsonpickle.encode(saved)
