@@ -22,7 +22,7 @@ def enumName(enum):
     return str(enum)
 
 def updatePendingActions(Disp):
-  if Config.PENDING_ACTION != None:
+  if Config.PENDING_ACTION != PendingAction.NONE:
     Disp.off()
 
     if Config.PENDING_ACTION == PendingAction.SHUTDOWN:
