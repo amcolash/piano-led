@@ -23,6 +23,11 @@ body {
   cursor: pointer;
 }
 
+option {
+  background: white;
+  color: black;
+}
+
 input[type='range'] {
   -webkit-appearance: none;
 
