@@ -18,6 +18,8 @@ savedValues = [
   'NIGHT_MODE_ENABLED',
   'PLAY_MODE',
   'CYCLE_SPEED',
+  'DISPLAY_MENU_RESET',
+  'DISPLAY_OFF_TIMEOUT',
 ]
 
 # PLAYING_MODE Options
@@ -74,6 +76,7 @@ class Configuration:
     self.FORWARD_MIDI = True
     self.MIDI_DEVICE = "Digital Keyboard" # A partial match of the midi device name
     self.TIMEZONE = pytz.timezone("America/Los_Angeles")
+    self.PORT = 8080 # server port
 
     # Key Configuration
     self.MIN_KEY = 28
@@ -85,9 +88,13 @@ class Configuration:
     # Playing Configuration
     self.FADE_SPEED = 5
 
+    # Timeout before menu goes back to main one (in minutes)
+    self.DISPLAY_MENU_RESET = 2
+    self.DISPLAY_OFF_TIMEOUT = 30
+
     self.PLAY_MODE = PlayMode.BRIGHTEN_CURRENT
 
-    # Scalar of how much to brighten colors with BRIGHTEN_CURRENT
+    # Scalar of how much to brighten colors
     self.BRIGHTEN_AMOUNT = 10
 
     # Number of keys to ripple from
@@ -134,8 +141,10 @@ class Configuration:
         for s in savedValues:
           if s == 'CURRENT_PALETTE':
             self.updatePalette(loaded['CURRENT_PALETTE'], False)
-          else:
+          elif s in loaded:
             setattr(self, s, loaded[s])
+          else:
+            print('Could not load saved value: ' + s)
 
         # Just in case there is special logic used in the load, make sure we have latest
         self.save()
@@ -145,7 +154,10 @@ class Configuration:
   def save(self):
     saved = {}
     for s in savedValues:
-      saved[s] = getattr(self, s)
+      if hasattr(self, s):
+        saved[s] = getattr(self, s)
+      else:
+        print('Could not save unknown value: ' + s)
 
     # encode as json
     encoded = jsonpickle.encode(saved)

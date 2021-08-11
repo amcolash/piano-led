@@ -1,7 +1,9 @@
 import rtmidi
 import sys
+import time
 
 from config import Config
+from leds import Leds
 from midi_input_handler import MidiInputHandler
 
 # This class is a singleton
@@ -52,10 +54,11 @@ class MidiPorts:
   @classmethod
   def stopAll(cls):
     if cls.midi_out_piano and cls.midi_out_piano.is_port_open():
-      for c in range(15):
-        command = (0b1000 << 4) + c # note off for each of the 16 channels
-        for n in range(127):
-          cls.midi_out_piano.send_message([command, n, 0])
+      # Send MIDI reset message
+      cls.midi_out_piano.send_message([0xFF])
+
+    # In addition to resetting, clear LEDs
+    Leds.clearLeds()
 
   @classmethod
   def cleanup(cls):

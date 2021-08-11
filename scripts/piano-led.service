@@ -6,6 +6,9 @@ After=multi-user.target
 Type=simple
 Restart=always
 ExecStart=/usr/bin/python3 /home/pi/piano-led/src/python/midi_pi.py
+StandardOutput=inherit
+StandardError=inherit
+Environment=PYTHONUNBUFFERED=1
 
 [Install]
 WantedBy=multi-user.target

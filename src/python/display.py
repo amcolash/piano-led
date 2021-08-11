@@ -16,20 +16,23 @@ ENTER_BUTTON = 8
 UP_BUTTON = 12
 
 TEXT_SCROLL_DELAY = 3
-DISPLAY_OFF_TIMEOUT = 30
 
 mainMenu = [
   MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
   MenuItem('Settings', items=[
-    MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette)),
-    MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode)),
+    MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette), icon=Icons['color']),
+    MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode), icon=Icons['light']),
     MenuItem('Ambient', items=[
-      MenuItem('Ambient Mode',  lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
-      MenuItem('Ambient Enabled',  lambda value: Config.updateValue('AMBIENT_ENABLED', not value), value=lambda: Config.AMBIENT_ENABLED),
-      MenuItem('Night Mode',  lambda value: Config.updateValue('NIGHT_MODE_ENABLED', not value), value=lambda: Config.NIGHT_MODE_ENABLED),
-      MenuItem('Night Mode Timeout',  lambda value: Config.updateValue('NIGHT_MODE_TIMEOUT', value), value=lambda: Config.NIGHT_MODE_TIMEOUT, options=[10, 20, 30, 60]),
-      MenuItem('Cycle Speed',  lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.3, 0.75, 1, 2]),
-    ])
+      MenuItem('Ambient Mode', lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
+      MenuItem('Ambient Enabled', lambda value: Config.updateValue('AMBIENT_ENABLED', not value), value=lambda: Config.AMBIENT_ENABLED),
+      MenuItem('Night Mode', lambda value: Config.updateValue('NIGHT_MODE_ENABLED', not value), value=lambda: Config.NIGHT_MODE_ENABLED),
+      MenuItem('Night Mode Timeout', lambda value: Config.updateValue('NIGHT_MODE_TIMEOUT', value), value=lambda: Config.NIGHT_MODE_TIMEOUT, options=[10, 20, 30, 60], icon=Icons['clock']),
+      MenuItem('Cycle Speed', lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.3, 0.75, 1, 2], icon=Icons['clock']),
+    ], icon=Icons['ambient']),
+    MenuItem('Display', items=[
+      MenuItem('Display Timeout',  lambda value: Config.updateValue('DISPLAY_OFF_TIMEOUT', value), value=lambda: Config.DISPLAY_OFF_TIMEOUT, options=[15, 30, 60, 120], icon=Icons['clock']),
+      MenuItem('Menu Reset Timeout',  lambda value: Config.updateValue('DISPLAY_MENU_RESET', value), value=lambda: Config.DISPLAY_MENU_RESET, options=[1, 2, 5, 10, 30], icon=Icons['clock']),
+    ], icon=Icons['display']),
   ]),
   MenuItem('System', items=[
     MenuItem('Shutdown', lambda: Config.updateValue('PENDING_ACTION', PendingAction.SHUTDOWN), icon=Icons['shutdown']),
@@ -134,7 +137,11 @@ class Display:
   def update(self):
     # Turn off the display after 30 seconds, keep track of previous to force a refresh
     prevDisplayOn = self.displayOn
-    self.displayOn = time.time() - self.lastButton < DISPLAY_OFF_TIMEOUT
+    self.displayOn = time.time() - self.lastButton < Config.DISPLAY_OFF_TIMEOUT
+
+    # Reset menu state if we have waited long enough
+    if time.time() - self.lastButton > Config.DISPLAY_MENU_RESET * 60 and (len(self.menu) > 1 or self.menu[0]['scroll'] != 0):
+      self.updatedMenu = [{'scroll': 0, 'items': mainMenu}]
 
     if self.updatedMenu:
       self.menu = self.updatedMenu
@@ -157,7 +164,6 @@ class Display:
 
     selectedLabel = items[scroll].label
     if items[scroll].value != None and items[scroll].showValue: selectedLabel = items[scroll].value()
-    selectedLabel = selectedLabel.replace('_', ' ').title()
 
     textScrolling = False
     if len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
@@ -190,7 +196,6 @@ class Display:
 
           label = item.label
           if item.value != None and item.showValue: label = item.value()
-          label = label.replace('_', ' ').title()
 
           if i == 1 and len(label) > 17:
             label += '     '
@@ -207,8 +212,8 @@ class Display:
           if len(item.items) > 0: icon = Icons['triangle']
           if label == 'Back': icon = Icons['back']
           if item.value != None:
-            if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['check']
-            elif item.value() == True and type(item.value()) == bool: icon = Icons['check']
+            if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['checkmark']
+            elif item.value() == True and type(item.value()) == bool: icon = Icons['checkmark']
           if item.icon != None: icon = item.icon
 
           if icon != None:

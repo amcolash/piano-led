@@ -1,6 +1,8 @@
 import cProfile
 import pstats
+import sys
 import time
+from threading import Thread
 
 from config import Config
 from display import Display
@@ -8,6 +10,7 @@ from i2c import I2C
 from leds import Leds
 from midi_ports import MidiPorts
 from music import Music
+from server import Server
 from util import niceTime, updatePendingActions
 
 class MidiPi:
@@ -15,15 +18,18 @@ class MidiPi:
     Config.load()
     Leds.init()
     I2C.init()
-    self.Disp = Display()
+    self.Display = Display()
+
+    serverThread = Thread(target=Server.init)
+    serverThread.start()
 
   def update(self):
     MidiPorts.update()
     Config.update()
     Leds.updateLeds()
     Music.update()
-    self.Disp.update()
-    updatePendingActions(self.Disp)
+    self.Display.update()
+    updatePendingActions(self.Display)
 
   def profile(self):
     # Just wait for keyboard interrupt, everything else is handled via the input callback.
@@ -39,18 +45,21 @@ class MidiPi:
     ps = pstats.Stats(profile)
     ps.print_stats()
 
-try:
-  print(niceTime() + ': Entering main loop. Press Control-C to exit.')
+if __name__ == "__main__":
+  try:
+    print(niceTime() + ': Entering main loop. Press Control-C to exit.')
 
-  midiPi = MidiPi()
+    midiPi = MidiPi()
 
-  while True:
-    if Config.PROFILING:
-      midiPi.profile()
-      break
+    while True:
+      if Config.PROFILING:
+        midiPi.profile()
+        break
 
-    midiPi.update()
-    # time.sleep(0.0005)
-finally:
-  MidiPorts.cleanup()
-  print('Exit')
+      midiPi.update()
+      # time.sleep(0.0005)
+  except:
+    print(sys.exc_info())
+  finally:
+    MidiPorts.cleanup()
+    print('Exit')

@@ -7,6 +7,8 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
+systemctl stop piano-led.service
+
 killall nodemon
 killall python3
 
