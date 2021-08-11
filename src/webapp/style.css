@@ -1,0 +1,41 @@
+:root {
+  --palette1: #1981a4;
+  --palette2: #43adbb;
+  --palette3: #8bd0cf;
+  --palette4: #f7e5d2;
+  --palette5: #dec8b8;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--palette1);
+}
+
+.icon {
+  border: none;
+  border-radius: 50%;
+  width: 3.75rem;
+  height: 3.75rem;
+
+  background: unset;
+  color: var(--palette3);
+  cursor: pointer;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+
+  width: 10rem;
+  border-radius: 0.2rem;
+  background-color: var(--palette2);
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.2rem;
+  background: var(--palette4);
+}

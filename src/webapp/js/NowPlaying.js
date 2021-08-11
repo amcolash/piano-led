@@ -1,54 +1,20 @@
-import { html, useEffect, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { html } from 'https://unpkg.com/htm/preact/standalone.module.js';
 
-import { playCircle, skipForward, stopCircle } from './icons.js';
-import { useInterval } from './useInterval.js';
-import { Palette, Server } from './util.js';
+import { play, skipForward, square } from './icons.js';
+import { Server } from './util.js';
 
-const icon = {
-  background: 'unset',
-  border: 'none',
-  color: Palette[2],
-  marginTop: '2rem',
-  width: '5rem',
-  height: '5rem',
-  cursor: 'pointer',
-  borderRadius: '50%',
-};
-
-export default function NowPlaying() {
-  const [song, setSong] = useState();
-
-  const getData = () => {
-    fetch(`${Server}/music`)
-      .then((response) => response.text())
-      .then((data) => setSong(data));
-  };
-
-  useEffect(getData, []);
-  useInterval(getData, 10000);
+export default function NowPlaying(props) {
+  console.log(props);
+  const song = props.status.music;
 
   return html`<div>
     <div style=${{ flexGrow: '100%' }}>${song || 'Nothing Playing'}</div>
-    <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '2rem' }}>
       ${song &&
-      html`<button
-        style=${icon}
-        onClick=${() => {
-          fetch(`${Server}/stop`).then(() => setTimeout(getData, 500));
-          setSong('');
-        }}
-      >
-        ${stopCircle}
-      </button>`}
+      html`<button class="icon" onClick=${() => fetch(`${Server}/stop`).then(() => setTimeout(props.getData, 500))}>${square}</button>`}
 
-      <button
-        style=${{ ...icon, height: song ? '3.75rem' : icon.height, width: song ? '3.75rem' : icon.width }}
-        onClick=${() => {
-          fetch(`${Server}/play`).then(() => setTimeout(getData, 500));
-          setSong('Starting Music...');
-        }}
-      >
-        ${song ? skipForward : playCircle}
+      <button class="icon" onClick=${() => fetch(`${Server}/play`).then(() => setTimeout(props.getData, 500))}>
+        ${song ? skipForward : play}
       </button>
     </div>
   </div>`;
