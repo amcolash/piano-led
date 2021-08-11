@@ -1,4 +1,5 @@
 import rtmidi
+from rtmidi.midiconstants import (ALL_SOUND_OFF, CONTROL_CHANGE, RESET_ALL_CONTROLLERS, VOLUME)
 import sys
 import time
 
@@ -10,6 +11,8 @@ from midi_input_handler import MidiInputHandler
 
 class MidiPorts:
   midiCount = 100
+  currentVolume = 127
+
   midi_in_piano = rtmidi.MidiIn()
   midi_in_system = rtmidi.MidiIn()
   midi_out_piano = rtmidi.MidiOut()
@@ -46,19 +49,38 @@ class MidiPorts:
 
             cls.midi_out_piano.open_port(1)
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
+            cls.setPianoVolume(127)
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:
         print(sys.exc_info())
 
   @classmethod
+  def pianoOn(cls):
+    return cls.midi_out_piano and cls.midi_out_piano.is_port_open()
+
+  @classmethod
   def stopAll(cls):
-    if cls.midi_out_piano and cls.midi_out_piano.is_port_open():
+    if cls.pianoOn():
       # Send MIDI reset message
-      cls.midi_out_piano.send_message([0xFF])
+      cls.midi_out_piano.send_message([CONTROL_CHANGE, ALL_SOUND_OFF, 0])
+      cls.midi_out_piano.send_message([CONTROL_CHANGE, RESET_ALL_CONTROLLERS, 0])
 
     # In addition to resetting, clear LEDs
     Leds.clearLeds()
+
+    # Wait a moment for things to settle
+    time.sleep(0.005)
+
+  @classmethod
+  def setPianoVolume(cls, volume):
+    if cls.pianoOn():
+      newVol = min(127, max(0, volume))
+
+      # Send new MIDI volume
+      cls.midi_out_piano.send_message([CONTROL_CHANGE, VOLUME, newVol])
+
+      cls.currentVolume = newVol
 
   @classmethod
   def cleanup(cls):

@@ -18,22 +18,24 @@ class Music:
   @classmethod
   def queue(cls, folder=None, file=None):
     if cls.process != None:
-      Music.stop()
+      cls.stop()
 
     if folder != None:
+      print('Queueing music in folder: ' + str(folder))
       cls.playlist = list(glob.glob(folder + '/**/*.mid', recursive=True))
       random.shuffle(cls.playlist) # always shuffled for now
     elif file != None:
+      print('Queueing file: ' + str(file))
       cls.playlist = [file]
 
     Config.SCROLL = 1
 
   @classmethod
-  def play(cls, file):
+  def play(cls, file, clear=True):
     print('Playing: ' + file)
 
     if cls.process != None:
-      Music.stop()
+      cls.stop(clear)
     else:
       MidiPorts.stopAll()
 
@@ -45,10 +47,10 @@ class Music:
     Config.DIRTY = True
 
   @classmethod
-  def stop(cls):
+  def stop(cls, clear=True):
     print('Stopped Music')
     cls.nowPlaying = None
-    cls.playlist = []
+    if clear: cls.playlist = []
 
     if cls.process != None:
       cls.process.terminate()
@@ -61,7 +63,7 @@ class Music:
   @classmethod
   def update(cls):
     if len(cls.playlist) > 0 and cls.process == None and MidiPorts.midi_in_system.is_port_open():
-      Music.play(cls.playlist.pop(0))
+      cls.play(cls.playlist.pop(0))
     elif cls.process == None:
       cls.nowPlaying = None
       # Config.DIRTY = True
@@ -84,8 +86,8 @@ class Music:
     files = list(glob.glob(folder + '/**/*.mid', recursive=True))
     files.sort()
 
-    items = [MenuItem('Shuffle', lambda: Music.queue(folder=folder), icon=Icons['shuffle'], parent=parent)]
-    items += list(map(lambda f: MenuItem(Path(f).stem, lambda value: Music.queue(file=value), value=lambda: f, parent=parent), files))
+    items = [MenuItem('Shuffle', lambda: cls.queue(folder=folder), icon=Icons['shuffle'], parent=parent)]
+    items += list(map(lambda f: MenuItem(Path(f).stem, lambda value: cls.queue(file=value), value=lambda: f, parent=parent), files))
 
     return items
 
@@ -97,18 +99,18 @@ class Music:
 
   @classmethod
   def getMusic(cls):
-    folders = Music.getFolders()
+    folders = cls.getFolders()
 
     menu = [
       MenuItem('Now Playing', icon=Icons['speaker'], value=lambda: Path(cls.nowPlaying).stem if cls.nowPlaying != None else None, visible=lambda: cls.nowPlaying != None, showValue=True),
-      MenuItem('Shuffle', lambda: Music.queue(folder=musicRoot), icon=Icons['shuffle']),
-      MenuItem('Stop', lambda: Music.stop(), icon=Icons['stop'], visible=lambda: cls.nowPlaying != None)
+      MenuItem('Shuffle', lambda: cls.queue(folder=musicRoot), icon=Icons['shuffle']),
+      MenuItem('Stop', lambda: cls.stop(), icon=Icons['stop'], visible=lambda: cls.nowPlaying != None)
     ]
 
     # can't use map since we are passing in the parent
     for f in folders:
       item = MenuItem(Path(f).stem.title(), None, value=lambda: f, visible=lambda: cls.nowPlaying == None)
-      item.items = Music.getFiles(f, item)
+      item.items = cls.getFiles(f, item)
       menu.append(item)
 
     return menu

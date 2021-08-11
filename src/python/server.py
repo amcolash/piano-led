@@ -1,10 +1,13 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from pathlib import Path
+import random
 import sys
 import time
+from urllib.parse import urlparse, parse_qs
 
 from config import Config
+from midi_ports import MidiPorts
 from music import Music, musicRoot
 
 hostName = "0.0.0.0"
@@ -16,32 +19,55 @@ class GetRequest:
     self.handler = handler
 
 GetRequests = {
-  '/play': GetRequest('/play', lambda: play(), "application/text"),
-  '/stop': GetRequest('/stop', lambda: stop(), "application/text"),
-  '/music': GetRequest('/music', lambda: music(), "application/text"),
-  '/folders': GetRequest('/folders', lambda: folders()),
-  '*': GetRequest('/', lambda: other(), "application/html")
+  '/play': GetRequest('/play', lambda req: play(req)),
+  '/next': GetRequest('/next', lambda req: next(req)),
+  '/stop': GetRequest('/stop', lambda req: stop(req)),
+  '/status': GetRequest('/status', lambda req: status(req)),
+  '/folders': GetRequest('/folders', lambda req: folders(req)),
+  '/volume': GetRequest('/volume', lambda req: volume(req)),
+  '*': GetRequest('/', lambda req: other(req), 'application/html')
 }
 
-def play():
-  Music.queue(folder=musicRoot)
-  return bytes("Starting music", "utf-8")
+def play(req):
+  f = musicRoot
 
-def stop():
+  query = parse_qs(req.query)
+  if 'folder' in query: f = query['folder'][0]
+
+  Music.queue(folder=f)
+  return bytes("Starting music in folder: " + str(f), "utf-8")
+
+def next(req):
+  Music.stop(clear=False)
+  return bytes("Skipping to next song", "utf-8")
+
+def stop(req):
   Music.stop()
   return bytes("Stopping music", "utf-8")
 
-def music():
-  song = Path(Music.nowPlaying or '').stem
-  return bytes(song, "utf-8")
+def status(req):
+  song = Path(Music.nowPlaying or '').stem if Music.nowPlaying != None else None
 
-def folders():
-  return bytes(json.dumps(Music.getFolders()), "utf-8")
+  return bytes(json.dumps({
+    'on': MidiPorts.pianoOn(), 'music': song, 'musicRoot': musicRoot, 'folders': Music.getFolders(), 'volume': MidiPorts.currentVolume,
+    'playlist': [Music.nowPlaying] + Music.playlist
+  }), "utf-8")
 
-def other():
+def volume(req):
+  query = parse_qs(req.query)
+
+  if 'value' in query:
+    vol = int(query['value'][0])
+    MidiPorts.setPianoVolume(vol)
+
+    return bytes("Setting volume to " + str(vol), "utf-8")
+  else:
+    return bytes("No volume specified", "utf-8")
+
+def other(req):
   return [
     bytes("<html><head><title>https://pythonbasics.org</title></head>", "utf-8"),
-    bytes("<p>Request: %s</p>" % self.path, "utf-8"),
+    bytes("<p>Request: %s</p>" % req.path, "utf-8"),
     bytes("<body>", "utf-8"),
     bytes("<p>This is an example web server.</p>", "utf-8"),
     bytes("</body></html>", "utf-8")
@@ -65,15 +91,21 @@ class Server(BaseHTTPRequestHandler):
 
   def do_GET(self):
     try:
-      requestHandler = GetRequests[self.path] or GetRequests['*']
-      response = requestHandler.handler()
+      parsed = urlparse(self.path)
+      requestHandler = GetRequests[parsed.path] if parsed.path in GetRequests else GetRequests['*']
+
+      response = requestHandler.handler(parsed)
 
       self.send_response(200)
       self.send_header("Access-Control-Allow-Origin", "*")
       self.send_header("Content-Type", requestHandler.contentType)
       self.end_headers()
 
-      self.wfile.write(response)
+      if not isinstance(response, list):
+        response = [response]
+
+      for r in response:
+        self.wfile.write(r)
 
     except:
       print(sys.exc_info())
