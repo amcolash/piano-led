@@ -8,17 +8,23 @@ from config import AmbientMode, Config, PlayMode
 # This class is a singleton
 
 class Leds:
+  strip = None
+  leds = []
+  cycle = 0
+  lastPlayed = 0
+
   @classmethod
   def init(cls):
     cls.strip = PixelStrip(Config.LED_COUNT, Config.LED_PIN, Config.LED_FREQ_HZ, Config.LED_DMA, Config.LED_INVERT, Config.LED_BRIGHTNESS, Config.LED_CHANNEL)
     cls.strip.begin()
 
-    cls.leds = []
     for l in range(Config.LED_COUNT):
       cls.leds.append({ 'current': [-1,-1,-1], 'previous': [0,0,0], 'target1': [0,0,0], 'target2': [0,0,0], 'state': [], 'playTime': 0, 'ripple': False })
 
-    cls.cycle = 0
-    cls.lastPlayed = 0
+  @classmethod
+  def clearLeds(cls):
+    for l in range(Config.LED_COUNT):
+      cls.leds[l]['state'] = []
 
   @classmethod
   def updateLeds(cls):

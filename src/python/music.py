@@ -60,7 +60,7 @@ class Music:
 
   @classmethod
   def update(cls):
-    if len(cls.playlist) > 0 and cls.process == None:
+    if len(cls.playlist) > 0 and cls.process == None and MidiPorts.midi_in_system.is_port_open():
       Music.play(cls.playlist.pop(0))
     elif cls.process == None:
       cls.nowPlaying = None
@@ -68,19 +68,16 @@ class Music:
 
     try:
       if cls.process != None:
-        # Do something else
         return_code = cls.process.poll()
+
         if return_code is not None:
-          # print('RETURN CODE', return_code)
-          # # Process has finished, read rest of the output
-          # for output in cls.process.stdout.readlines():
-          #   print(output.strip())
           cls.process = None
     except:
       print('Something went wrong checking process!')
+      print(sys.exc_info())
       if cls.process != None:
-        cls.process.terminate()
         cls.process = None
+        cls.process.terminate()
 
   @classmethod
   def getFiles(cls, folder, parent):
@@ -93,9 +90,14 @@ class Music:
     return items
 
   @classmethod
-  def getMusic(cls):
+  def getFolders(cls):
     folders = list(glob.glob(musicRoot + '/*'))
     folders.sort()
+    return folders
+
+  @classmethod
+  def getMusic(cls):
+    folders = Music.getFolders()
 
     menu = [
       MenuItem('Now Playing', icon=Icons['speaker'], value=lambda: Path(cls.nowPlaying).stem if cls.nowPlaying != None else None, visible=lambda: cls.nowPlaying != None, showValue=True),
@@ -105,7 +107,7 @@ class Music:
 
     # can't use map since we are passing in the parent
     for f in folders:
-      item = MenuItem(Path(f).stem, None, value=lambda: f, visible=lambda: cls.nowPlaying == None)
+      item = MenuItem(Path(f).stem.title(), None, value=lambda: f, visible=lambda: cls.nowPlaying == None)
       item.items = Music.getFiles(f, item)
       menu.append(item)
 

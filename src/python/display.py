@@ -20,18 +20,18 @@ TEXT_SCROLL_DELAY = 3
 mainMenu = [
   MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
   MenuItem('Settings', items=[
-    MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette)),
-    MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode)),
+    MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette), icon=Icons['color']),
+    MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode), icon=Icons['light']),
     MenuItem('Ambient', items=[
       MenuItem('Ambient Mode', lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
       MenuItem('Ambient Enabled', lambda value: Config.updateValue('AMBIENT_ENABLED', not value), value=lambda: Config.AMBIENT_ENABLED),
       MenuItem('Night Mode', lambda value: Config.updateValue('NIGHT_MODE_ENABLED', not value), value=lambda: Config.NIGHT_MODE_ENABLED),
-      MenuItem('Night Mode Timeout', lambda value: Config.updateValue('NIGHT_MODE_TIMEOUT', value), value=lambda: Config.NIGHT_MODE_TIMEOUT, options=[10, 20, 30, 60]),
-      MenuItem('Cycle Speed', lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.3, 0.75, 1, 2]),
-    ]),
+      MenuItem('Night Mode Timeout', lambda value: Config.updateValue('NIGHT_MODE_TIMEOUT', value), value=lambda: Config.NIGHT_MODE_TIMEOUT, options=[10, 20, 30, 60], icon=Icons['clock']),
+      MenuItem('Cycle Speed', lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.3, 0.75, 1, 2], icon=Icons['clock']),
+    ], icon=Icons['ambient']),
     MenuItem('Display', items=[
-      MenuItem('Display Timeout',  lambda value: Config.updateValue('DISPLAY_OFF_TIMEOUT', value), value=lambda: Config.DISPLAY_OFF_TIMEOUT, options=[15, 30, 60, 120]),
-      MenuItem('Menu Reset Timeout',  lambda value: Config.updateValue('DISPLAY_MENU_RESET', value), value=lambda: Config.DISPLAY_MENU_RESET, options=[1, 2, 5, 10, 30]),
+      MenuItem('Display Timeout',  lambda value: Config.updateValue('DISPLAY_OFF_TIMEOUT', value), value=lambda: Config.DISPLAY_OFF_TIMEOUT, options=[15, 30, 60, 120], icon=Icons['clock']),
+      MenuItem('Menu Reset Timeout',  lambda value: Config.updateValue('DISPLAY_MENU_RESET', value), value=lambda: Config.DISPLAY_MENU_RESET, options=[1, 2, 5, 10, 30], icon=Icons['clock']),
     ], icon=Icons['display']),
   ]),
   MenuItem('System', items=[
@@ -164,7 +164,6 @@ class Display:
 
     selectedLabel = items[scroll].label
     if items[scroll].value != None and items[scroll].showValue: selectedLabel = items[scroll].value()
-    selectedLabel = selectedLabel.replace('_', ' ').title()
 
     textScrolling = False
     if len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
@@ -197,7 +196,6 @@ class Display:
 
           label = item.label
           if item.value != None and item.showValue: label = item.value()
-          label = label.replace('_', ' ').title()
 
           if i == 1 and len(label) > 17:
             label += '     '
