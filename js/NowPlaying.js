@@ -14,7 +14,7 @@ export default function NowPlaying(props) {
       html`<button class="icon" onClick=${() => fetch(`${Server}/stop`).then(() => setTimeout(props.getData, 500))}>${square}</button
         ><button
           class="icon"
-          style=${{ marginRight: '1.5rem' }}
+          style=${{ marginRight: '1.75rem' }}
           onClick=${() => fetch(`${Server}/next`).then(() => setTimeout(props.getData, 500))}
         >
           ${skipForward}
