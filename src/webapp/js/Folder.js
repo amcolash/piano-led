@@ -10,17 +10,17 @@ export default function Folder(props) {
   const musicRoot = props.status.musicRoot;
 
   return html`
-    <button class="icon" style=${{ position: 'relative' }}>
+    <div class="icon" style=${{ position: 'relative' }}>
       ${folder}
       <select
         class="icon"
-        style=${{ position: 'absolute', top: 0, left: 0, opacity: 0 }}
+        style=${{ position: 'absolute', top: 0, left: 0 }}
         onChange=${(e) => fetch(`${Server}/play?folder=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
         value=${null}
       >
         <option value=${musicRoot}>All Music</option>
         ${folders.map((f) => html`<option value=${f}>${title(f.replace(musicRoot + '/', ''))}</option>`)}
       </select>
-    </button>
+    </div>
   `;
 }

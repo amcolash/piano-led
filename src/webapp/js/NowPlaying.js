@@ -1,11 +1,10 @@
 import { html } from 'https://unpkg.com/htm/preact/standalone.module.js';
 import Folder from './Folder.js';
 
-import { play, skipForward, square } from './icons.js';
+import { skipForward, square } from './icons.js';
 import { Server } from './util.js';
 
 export default function NowPlaying(props) {
-  console.log(props);
   const song = props.status.music;
 
   return html`<div>

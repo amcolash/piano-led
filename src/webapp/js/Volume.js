@@ -11,7 +11,7 @@ export default function Volume(props) {
       min="0"
       max="127"
       value=${volume}
-      onChange=${(e) => fetch(`${Server}/volume?value=${e.target.value}`).then(props.getData)}
+      onChange=${(e) => fetch(`${Server}/volume?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
     />
   </div>`;
 }

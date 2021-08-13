@@ -23,6 +23,11 @@ body {
   cursor: pointer;
 }
 
+select {
+  appearance: none;
+  padding: 0.25rem;
+}
+
 option {
   background: white;
   color: black;
@@ -32,15 +37,17 @@ input[type='range'] {
   -webkit-appearance: none;
 
   width: 10rem;
-  border-radius: 0.2rem;
+  height: 0.75rem;
+  border-radius: 0.25rem;
+  overflow: hidden;
+
   background-color: var(--palette2);
+  border: 0.2rem solid var(--palette3);
 }
 
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
 
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: 0.2rem;
-  background: var(--palette4);
+  width: 0.15rem;
+  box-shadow: 100vw 0 0 100vw var(--palette1);
 }

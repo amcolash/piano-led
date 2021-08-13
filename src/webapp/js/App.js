@@ -40,7 +40,7 @@ function App() {
         ${status.on
           ? html`<${NowPlaying} status=${status} getData=${getData} /><${Volume} status=${status} getData=${getData} />`
           : html`<div>Piano Off</div>
-              <div class="icon" style=${{ marginTop: '1rem' }}>${power}</div>`}
+              <div class="icon" style=${{ marginTop: '1rem', cursor: 'unset' }}>${power}</div>`}
       </div>
     </div>
   `;
