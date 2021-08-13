@@ -1,0 +1,22 @@
+{
+  "name": "Piano-LED",
+  "short_name": "Piano LED",
+  "icons": [
+    {
+      "src": "img/icon/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "img/icon/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "theme_color": "#1981a4",
+  "background_color": "#1981a4",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/piano-led/"
+}
