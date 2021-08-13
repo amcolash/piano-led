@@ -12,7 +12,7 @@ export default function Folder(props) {
       ${folder}
       <select
         class="icon"
-        style=${{ position: 'absolute', top: 0, left: 0 }}
+        style=${{ position: 'absolute', top: 0, left: 0, color: 'rgba(0,0,0,0)' }}
         onChange=${(e) => fetch(`${Server}/play?folder=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
         value=${null}
       >
