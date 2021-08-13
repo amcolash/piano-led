@@ -58,7 +58,7 @@ def volume(req):
 
   if 'value' in query:
     vol = int(query['value'][0])
-    MidiPorts.setPianoVolume(vol)
+    MidiPorts.nextVolume = vol
 
     return bytes("Setting volume to " + str(vol), "utf-8")
   else:
@@ -83,8 +83,8 @@ class Server(BaseHTTPRequestHandler):
 
     try:
       cls.webServer.serve_forever()
-    except KeyboardInterrupt:
-      pass
+    except:
+      print(sys.exc_info())
 
     cls.webServer.server_close()
     print("Server stopped.")
