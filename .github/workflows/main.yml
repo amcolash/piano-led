@@ -1,0 +1,17 @@
+name: CI
+
+on: push
+
+jobs:
+  build:
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+          with:
+            branch: gh-pages
+            folder: src/webapp
