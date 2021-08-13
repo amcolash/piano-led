@@ -12,6 +12,7 @@ from midi_input_handler import MidiInputHandler
 class MidiPorts:
   midiCount = 100
   currentVolume = 127
+  nextVolume = 127
 
   midi_in_piano = rtmidi.MidiIn()
   midi_in_system = rtmidi.MidiIn()
@@ -19,6 +20,9 @@ class MidiPorts:
 
   @classmethod
   def update(cls):
+    # If the volume needs to be updated
+    cls.updateVolume()
+
     if cls.midiCount > 0:
       cls.midiCount -= 1
     else:
@@ -49,7 +53,8 @@ class MidiPorts:
 
             cls.midi_out_piano.open_port(1)
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
-            cls.setPianoVolume(127)
+            cls.currentVolume = 0
+            cls.nextVolume = 127
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:
@@ -62,9 +67,13 @@ class MidiPorts:
   @classmethod
   def stopAll(cls):
     if cls.pianoOn():
-      # Send MIDI reset message
-      cls.midi_out_piano.send_message([CONTROL_CHANGE, ALL_SOUND_OFF, 0])
-      cls.midi_out_piano.send_message([CONTROL_CHANGE, RESET_ALL_CONTROLLERS, 0])
+
+      try:
+        # Send MIDI reset message
+        cls.midi_out_piano.send_message([CONTROL_CHANGE, ALL_SOUND_OFF, 0])
+        cls.midi_out_piano.send_message([CONTROL_CHANGE, RESET_ALL_CONTROLLERS, 0])
+      except:
+        print(sys.exc_info())
 
     # In addition to resetting, clear LEDs
     Leds.clearLeds()
@@ -73,12 +82,18 @@ class MidiPorts:
     time.sleep(0.005)
 
   @classmethod
-  def setPianoVolume(cls, volume):
-    if cls.pianoOn():
-      newVol = min(127, max(0, volume))
+  def updateVolume(cls):
+    if cls.nextVolume != cls.currentVolume and cls.pianoOn():
+      newVol = min(127, max(0, cls.nextVolume))
 
-      # Send new MIDI volume
-      cls.midi_out_piano.send_message([CONTROL_CHANGE, VOLUME, newVol])
+      try:
+        # change volume for each of the 16 channels
+        for c in range(15):
+          # Send new MIDI volume
+          cls.midi_out_piano.send_message([CONTROL_CHANGE | c, VOLUME, newVol])
+          time.sleep(0.001)
+      except:
+        print(sys.exc_info())
 
       cls.currentVolume = newVol
 
