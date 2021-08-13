@@ -9,6 +9,7 @@ from urllib.parse import urlparse, parse_qs
 from config import Config
 from midi_ports import MidiPorts
 from music import Music, musicRoot
+from palettes import Palette
 
 hostName = "0.0.0.0"
 
@@ -19,14 +20,28 @@ class GetRequest:
     self.handler = handler
 
 GetRequests = {
-  '/play': GetRequest('/play', lambda req: play(req)),
   '/next': GetRequest('/next', lambda req: next(req)),
-  '/stop': GetRequest('/stop', lambda req: stop(req)),
+  '/palette': GetRequest('/palette', lambda req: palette(req)),
+  '/play': GetRequest('/play', lambda req: play(req)),
   '/status': GetRequest('/status', lambda req: status(req)),
-  '/folders': GetRequest('/folders', lambda req: folders(req)),
+  '/stop': GetRequest('/stop', lambda req: stop(req)),
   '/volume': GetRequest('/volume', lambda req: volume(req)),
   '*': GetRequest('/', lambda req: other(req), 'application/html')
 }
+
+def next(req):
+  Music.stop(clear=False)
+  return bytes("Skipping to next song", "utf-8")
+
+def palette(req):
+  query = parse_qs(req.query)
+
+  if 'value' in query:
+    p = query['value'][0]
+    Config.updatePalette(getattr(Palette, p))
+    return bytes("Changing palette to: " + str(p), "utf-8")
+  else:
+    return bytes("No palette selected", "utf-8")
 
 def play(req):
   f = musicRoot
@@ -37,21 +52,17 @@ def play(req):
   Music.queue(folder=f)
   return bytes("Starting music in folder: " + str(f), "utf-8")
 
-def next(req):
-  Music.stop(clear=False)
-  return bytes("Skipping to next song", "utf-8")
-
-def stop(req):
-  Music.stop()
-  return bytes("Stopping music", "utf-8")
-
 def status(req):
   song = Path(Music.nowPlaying or '').stem if Music.nowPlaying != None else None
 
   return bytes(json.dumps({
     'on': MidiPorts.pianoOn(), 'music': song, 'musicRoot': musicRoot, 'folders': Music.getFolders(), 'volume': MidiPorts.currentVolume,
-    'playlist': [Music.nowPlaying] + Music.playlist
+    'playlist': [Music.nowPlaying] + Music.playlist, 'palettes': list(map(lambda p: p.name, list(Palette)))
   }), "utf-8")
+
+def stop(req):
+  Music.stop()
+  return bytes("Stopping music", "utf-8")
 
 def volume(req):
   query = parse_qs(req.query)
