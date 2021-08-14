@@ -38,10 +38,9 @@ function App() {
       }}
     >
       <div style=${{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+        <${Settings} status=${status} getData=${getData} />
         ${status.on
-          ? html`<${Settings} status=${status} getData=${getData} />
-              <${NowPlaying} status=${status} getData=${getData} />
-              <${Volume} status=${status} getData=${getData} />`
+          ? html`<${NowPlaying} status=${status} getData=${getData} /><${Volume} status=${status} getData=${getData} />`
           : html`<div>Piano Off</div>
               <div class="icon" style=${{ marginTop: '1rem', cursor: 'unset' }}>${power}</div>`}
       </div>

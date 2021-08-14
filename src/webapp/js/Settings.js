@@ -4,7 +4,7 @@ import { sliders } from './icons.js';
 import { Server } from './util.js';
 
 export default function Settings(props) {
-  const palettes = props.status.palettes;
+  const palettes = props.status.palettes || [];
 
   return html`
     <div class="icon" style=${{ position: 'absolute', top: '1rem', right: '1rem' }}>
