@@ -139,23 +139,30 @@ class Configuration:
         loaded = jsonpickle.decode(f.read())
 
         for s in savedValues:
-          if s == 'CURRENT_PALETTE':
-            self.updatePalette(loaded['CURRENT_PALETTE'], False)
-          elif s in loaded:
-            setattr(self, s, loaded[s])
-          else:
-            print('Could not load saved value: ' + s)
+          try:
+            if s == 'CURRENT_PALETTE':
+                found = getattr(palettes.Palette, loaded[s])
+                self.updatePalette(found, False)
+            elif s in loaded:
+              setattr(self, s, loaded[s])
+            else:
+              print('Could not load saved value: ' + s)
+          except:
+            print('Failed to load setting: ' + s, sys.exc_info())
 
         # Just in case there is special logic used in the load, make sure we have latest
         self.save()
     except:
-      print('Failed to parse settings file', sys.exc_info()[0])
+      print('Failed to parse settings file', sys.exc_info())
 
   def save(self):
     saved = {}
     for s in savedValues:
       if hasattr(self, s):
-        saved[s] = getattr(self, s)
+        if s == 'CURRENT_PALETTE':
+          saved[s] = getattr(self, s).name
+        else:
+          saved[s] = getattr(self, s)
       else:
         print('Could not save unknown value: ' + s)
 
