@@ -10,6 +10,7 @@ from config import Config
 from midi_ports import MidiPorts
 from music import Music, musicRoot
 from palettes import Palette
+from power import Power
 
 hostName = "0.0.0.0"
 
@@ -23,6 +24,7 @@ GetRequests = {
   '/next': GetRequest('/next', lambda req: next(req)),
   '/palette': GetRequest('/palette', lambda req: palette(req)),
   '/play': GetRequest('/play', lambda req: play(req)),
+  '/power': GetRequest('/power', lambda req: power(req)),
   '/status': GetRequest('/status', lambda req: status(req)),
   '/stop': GetRequest('/stop', lambda req: stop(req)),
   '/volume': GetRequest('/volume', lambda req: volume(req)),
@@ -59,6 +61,10 @@ def status(req):
     'on': MidiPorts.pianoOn(), 'music': song, 'musicRoot': musicRoot, 'folders': Music.getFolders(), 'volume': MidiPorts.currentVolume,
     'playlist': [Music.nowPlaying] + Music.playlist, 'palettes': list(map(lambda p: p.name, list(Palette)))
   }), "utf-8")
+
+def power(req):
+  Power.toggle()
+  return bytes("Toggling power", "utf-8")
 
 def stop(req):
   Music.stop()

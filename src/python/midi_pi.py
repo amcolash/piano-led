@@ -10,6 +10,7 @@ from i2c import I2C
 from leds import Leds
 from midi_ports import MidiPorts
 from music import Music
+from power import Power
 from server import Server
 from util import niceTime, updatePendingActions
 
@@ -18,6 +19,7 @@ class MidiPi:
     Config.load()
     Leds.init()
     I2C.init()
+    Power.init()
     self.Display = Display()
 
     serverThread = Thread(target=Server.init)
@@ -37,7 +39,7 @@ class MidiPi:
     profile.enable()
 
     i = 0
-    while i < 500:
+    while i < 300:
       self.update()
       i += 1
 
