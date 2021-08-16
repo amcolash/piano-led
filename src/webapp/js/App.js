@@ -6,7 +6,6 @@ import NowPlaying from './NowPlaying.js';
 import Settings from './Settings.js';
 import Volume from './Volume.js';
 
-import { power } from './icons.js';
 import { useInterval } from './useInterval.js';
 import { Palette, Server } from './util.js';
 

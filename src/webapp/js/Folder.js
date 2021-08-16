@@ -4,8 +4,8 @@ import { folder } from './icons.js';
 import { Server, title } from './util.js';
 
 export default function Folder(props) {
-  const folders = props.status.folders;
-  const musicRoot = props.status.musicRoot;
+  const folders = Object.keys(props.musicData.files) || [];
+  const musicRoot = props.musicData.musicRoot;
 
   return html`
     <div class="icon" style=${{ position: 'relative' }}>
