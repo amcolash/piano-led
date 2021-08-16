@@ -1,10 +1,18 @@
-import { html } from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { html, useEffect, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
 import Folder from './Folder.js';
 
 import { skipForward, square } from './icons.js';
 import { Server } from './util.js';
 
 export default function NowPlaying(props) {
+  const [musicData, setMusicData] = useState({ files: {} });
+
+  useEffect(() => {
+    fetch(`${Server}/files`)
+      .then((response) => response.json())
+      .then((data) => setMusicData(data));
+  }, []);
+
   const song = props.status.music;
 
   return html`<div>
@@ -20,7 +28,7 @@ export default function NowPlaying(props) {
           ${skipForward}
         </button>`}
 
-      <${Folder} status=${props.status} getData=${props.getData} />
+      <${Folder} musicData=${musicData} getData=${props.getData} />
     </div>
   </div>`;
 }
