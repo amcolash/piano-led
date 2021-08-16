@@ -14,9 +14,12 @@ function App() {
   const [status, setStatus] = useState({});
 
   const getData = () => {
-    fetch(`${Server}/status`)
-      .then((response) => response.json())
-      .then((data) => setStatus(data));
+    const res = fetch(`${Server}/status`)
+    .then((response) => response.json());
+
+    res.then((data) => setStatus(data));
+
+    return res;
   };
 
   useEffect(getData, []);
@@ -41,8 +44,7 @@ function App() {
         <${Settings} status=${status} getData=${getData} />
         ${status.on
           ? html`<${NowPlaying} status=${status} getData=${getData} /><${Volume} status=${status} getData=${getData} />`
-          : html`<div>Piano Off</div>
-              <div class="icon" style=${{ marginTop: '1rem', cursor: 'unset' }}>${power}</div>`}
+          : html`<div>Piano Off</div>`}
       </div>
     </div>
   `;
