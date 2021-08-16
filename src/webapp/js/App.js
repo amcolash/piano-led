@@ -14,8 +14,7 @@ function App() {
   const [status, setStatus] = useState({});
 
   const getData = () => {
-    const res = fetch(`${Server}/status`)
-    .then((response) => response.json());
+    const res = fetch(`${Server}/status`).then((response) => response.json());
 
     res.then((data) => setStatus(data));
 
