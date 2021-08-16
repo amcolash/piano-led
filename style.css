@@ -34,7 +34,7 @@ option {
 }
 
 .folderList {
-  width: 80vw;
+  width: 85vw;
   height: 80vh;
 
   max-width: 900px;
@@ -44,17 +44,27 @@ option {
 .folderList .select {
   height: 100%;
   overflow-y: auto;
+
+  /* Scroll shadow: https://radiant-brushlands-42789.herokuapp.com/javascript.plainenglish.io/how-to-create-horizontal-vertical-scroll-shadows-26aa7a7f00a0 */
+  background-image: linear-gradient(to top, var(--palette3), var(--palette3)), linear-gradient(to top, var(--palette3), var(--palette3)),
+    linear-gradient(to top, rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0)),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0));
+  background-position: bottom center, top center, bottom center, top center;
+  background-color: var(--palette3);
+  background-repeat: no-repeat;
+  background-size: 100% 20px, 100% 20px, 100% 10px, 100% 10px;
+  background-attachment: local, local, scroll, scroll;
 }
 
 .folderList .option {
-  height: 2rem;
   display: flex;
-  padding: 0.25rem 0.5rem;
+  padding: 0.35rem 0.5rem;
   align-items: center;
   font-size: 1.15rem;
   color: var(--palette1);
   cursor: pointer;
   user-select: none;
+  text-transform: capitalize;
 }
 
 .folderList .option.selected {
