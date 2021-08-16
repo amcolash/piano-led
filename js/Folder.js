@@ -1,24 +1,60 @@
-import { html } from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { html, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { shuffle, volume2, x } from './icons.js';
 
-import { folder } from './icons.js';
-import { Server, title } from './util.js';
+import { Palette, Server, title } from './util.js';
 
 export default function Folder(props) {
-  const folders = Object.keys(props.musicData.files) || [];
   const musicRoot = props.musicData.musicRoot;
+  const folders = Object.keys(props.musicData.files).sort((a, b) => {
+    if (a === musicRoot) return -1;
+    return a.localeCompare(b);
+  });
+
+  const [selectedFolder, setSelectedFolder] = useState(musicRoot);
 
   return html`
-    <div class="icon" style=${{ position: 'relative' }}>
-      ${folder}
-      <select
+    <div
+      class="folderList"
+      style=${{
+        position: 'absolute',
+        padding: '1rem',
+        background: Palette[2],
+        boxShadow: '0 0 2rem rgba(0,0,0,0.3)',
+        overflow: 'hidden',
+        borderRadius: '0.25rem',
+      }}
+    >
+      <div style=${{ color: Palette[0] }}>Select Music</div>
+      <button
         class="icon"
-        style=${{ position: 'absolute', top: 0, left: 0, color: 'rgba(0,0,0,0)' }}
-        onChange=${(e) => fetch(`${Server}/play?folder=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
-        value=${null}
+        style=${{ position: 'absolute', right: '0.5rem', top: '0.5rem', color: Palette[0] }}
+        onClick=${props.closeFolder}
       >
-        <option value=${musicRoot}>All Music</option>
-        ${folders.map((f) => html`<option value=${f}>${title(f.replace(musicRoot + '/', ''))}</option>`)}
-      </select>
+        ${x}
+      </button>
+      <div style=${{ display: 'flex', overflow: 'hidden', height: 'calc(100% - 2.75rem)', marginTop: '1rem' }}>
+        <div class="select" style=${{ width: '30%', marginRight: '0.5rem' }}>
+          ${folders.map(
+            (f) =>
+              html`<div class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
+                ${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
+              </div>`
+          )}
+        </div>
+        <div class="select" style=${{ width: '100%' }}>
+          <div class="option" onClick=${(e) => fetch(`${Server}/play?folder=${selectedFolder}`).then(() => setTimeout(props.getData, 500))}>
+            <div style=${{ width: '1.5rem', height: '1.5rem', marginRight: '1rem' }}>${shuffle}</div>
+            <div>Shuffle Folder</div>
+          </div>
+          ${props.musicData.files[selectedFolder].map((f) => {
+            const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
+            return html`<div class="option" onClick=${(e) => fetch(`${Server}/play?file=${f}`).then(() => setTimeout(props.getData, 500))}>
+              ${isPlaying && html`<div style=${{ width: '1.5rem', height: '1.5rem', marginRight: '1rem' }}>${volume2}</div>`}
+              <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>${title(f.replace(selectedFolder + '/', ''))}</div>
+            </div>`;
+          })}
+        </div>
+      </div>
     </div>
   `;
 }

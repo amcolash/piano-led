@@ -1,16 +1,26 @@
 import { html, useEffect, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
 import Folder from './Folder.js';
 
-import { skipForward, square } from './icons.js';
+import { folder, skipForward, square } from './icons.js';
 import { Server } from './util.js';
 
 export default function NowPlaying(props) {
   const [musicData, setMusicData] = useState({ files: {} });
+  const [foldersOpen, setFoldersOpen] = useState(false);
 
   useEffect(() => {
     fetch(`${Server}/files`)
       .then((response) => response.json())
-      .then((data) => setMusicData(data));
+      .then((data) => {
+        const folders = Object.keys(data.files);
+
+        // Add all files to root
+        const allFiles = [];
+        folders.forEach((f) => allFiles.push(...data.files[f]));
+        data.files[data.musicRoot] = allFiles;
+
+        setMusicData(data);
+      });
   }, []);
 
   const song = props.status.music;
@@ -28,7 +38,10 @@ export default function NowPlaying(props) {
           ${skipForward}
         </button>`}
 
-      <${Folder} musicData=${musicData} getData=${props.getData} />
+      <button class="icon" onClick=${() => setFoldersOpen(true)}>${folder}</button>
+
+      ${foldersOpen &&
+      html`<${Folder} musicData=${musicData} status=${props.status} getData=${props.getData} closeFolder=${() => setFoldersOpen(false)} />`}
     </div>
   </div>`;
 }
