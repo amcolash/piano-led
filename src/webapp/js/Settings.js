@@ -1,7 +1,7 @@
 import { html, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
 
-import { power, refresh_cw, sliders } from './icons.js';
-import { Palette, Server } from './util.js';
+import { power, refreshCw, sliders } from './icons.js';
+import { Server } from './util.js';
 
 export default function Settings(props) {
   // helper function to retry status checking multiple times in quicker intervals
@@ -63,7 +63,7 @@ export default function Settings(props) {
         onClick=${togglePower}
         disabled=${toggling}
       >
-        ${toggling ? refresh_cw : power}
+        ${toggling ? refreshCw : power}
       </button>
     </div>
   `;
