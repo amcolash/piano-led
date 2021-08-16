@@ -34,7 +34,7 @@ export default function Folder(props) {
         ${x}
       </button>
       <div style=${{ display: 'flex', overflow: 'hidden', height: 'calc(100% - 2.75rem)', marginTop: '1rem' }}>
-        <div class="select" style=${{ width: '30%', marginRight: '0.5rem' }}>
+        <div class="select" style=${{ width: '30%', marginRight: '0.5rem', overflow: 'hidden' }}>
           ${folders.map(
             (f) =>
               html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
