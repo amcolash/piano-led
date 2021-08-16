@@ -52,10 +52,13 @@ export default function Folder(props) {
           </${Button}>
           ${props.musicData.files[selectedFolder].map((f) => {
             const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
-            return html`<${Button} class="option" onClick=${(e) =>
+            return html`<${Button} class=${`option ${isPlaying ? 'selected' : ''}`} onClick=${(e) =>
               fetch(`${Server}/play?file=${f}`).then(() => setTimeout(props.getData, 500))}>
               ${isPlaying && html`<div style=${{ width: '1.5rem', height: '1.5rem', marginRight: '1rem' }}>${volume2}</div>`}
-              <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>${f.replace(selectedFolder + '/', '')}</div>
+              <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>${f
+              .replace(selectedFolder + '/', '')
+              .replace('.mid', '')
+              .replace('/', ' / ')}</div>
             </${Button}>`;
           })}
         </div>
