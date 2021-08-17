@@ -20,21 +20,16 @@ export default function Folder(props) {
       style=${{
         position: 'absolute',
         padding: '1rem',
+        marginTop: '3.5rem',
         background: 'var(--palette3)',
         boxShadow: '0 0 2rem rgba(0,0,0,0.3)',
         overflow: 'hidden',
         borderRadius: '0.5rem',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      <div style=${{ color: 'var(--palette1)' }}>Select Music</div>
-      <button
-        class="icon"
-        style=${{ position: 'absolute', right: '0.5rem', top: '0.5rem', color: 'var(--palette1)' }}
-        onClick=${props.closeFolder}
-      >
-        ${x}
-      </button>
-      <div style=${{ display: 'flex', height: 'calc(100% - 2.25rem)', marginTop: '1rem' }}>
+      <div style=${{ display: 'flex', height: '100%', overflow: 'hidden' }}>
         <div style=${{ width: '30%', marginRight: '0.5rem', position: 'relative' }}>
           <div class="select" style=${{ overflow: 'hidden' }}>
             ${folders.map(
@@ -44,39 +39,20 @@ export default function Folder(props) {
                 </${Button}>`
             )}
           </div>
-
-          ${
-            props.status.music &&
-            html`<div
-              style=${{
-                position: 'absolute',
-                left: '-1rem',
-                bottom: '-0.5rem',
-                padding: '1rem 0rem 1rem 1rem',
-                width: '100%',
-                background: 'var(--palette2)',
-                borderTopRightRadius: '0.5rem',
-              }}
-            >
-              <div style=${{ fontSize: '1.35rem', color: 'var(--palette1)', marginBottom: '0.5rem' }}>${props.status.music}</div>
-              <${Controls} status=${props.status} getData=${props.getData} />
-            </div>`
-          }
-
         </div>
         <div class="select" style=${{ width: '100%' }}>
           <${Button}
             class="option"
             onClick=${(e) => fetch(`${Server}/play?folder=${selectedFolder}`).then(() => setTimeout(props.getData, 500))}
           >
-            <div style=${{ width: '1.5rem', height: '1.5rem', marginRight: '1rem' }}>${shuffle}</div>
+            <div style=${{ minWidth: '1.5rem', minHeight: '1.5rem', marginRight: '1rem' }}>${shuffle}</div>
             <div>Shuffle Folder</div>
           </${Button}>
-          ${props.musicData.files[selectedFolder].map((f) => {
+          ${(props.musicData.files[selectedFolder] || []).map((f) => {
             const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
             return html`<${Button} class=${`option ${isPlaying ? 'selected' : ''}`} onClick=${(e) =>
               fetch(`${Server}/play?file=${f}`).then(() => setTimeout(props.getData, 500))}>
-              ${isPlaying && html`<div style=${{ width: '1.5rem', height: '1.5rem', marginRight: '1rem' }}>${volume2}</div>`}
+              ${isPlaying && html`<div style=${{ minWidth: '1.5rem', minHeight: '1.5rem', marginRight: '1rem' }}>${volume2}</div>`}
               <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>${f
               .replace(selectedFolder + '/', '')
               .replace('.mid', '')
@@ -85,6 +61,22 @@ export default function Folder(props) {
           })}
         </div>
       </div>
+      ${
+        props.status.music &&
+        html`<div
+          style=${{
+            padding: '1rem',
+            width: '100%',
+            background: 'var(--palette5)',
+            // borderRadius: '0.5rem',
+            marginLeft: '-1rem',
+            marginBottom: '-1rem',
+          }}
+        >
+          <div style=${{ fontSize: '1.35rem', color: 'var(--palette2)', marginBottom: '0.5rem' }}>${props.status.music}</div>
+          <${Controls} status=${props.status} getData=${props.getData} />
+        </div>`
+      }
     </div>
   `;
 }
