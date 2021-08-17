@@ -91,7 +91,7 @@ export const sliders = html`<svg
   <line x1="17" y1="16" x2="23" y2="16"></line>
 </svg>`;
 
-export const refresh_cw = html`<svg
+export const refreshCw = html`<svg
   xmlns="http://www.w3.org/2000/svg"
   viewBox="0 0 24 24"
   fill="none"
@@ -104,4 +104,64 @@ export const refresh_cw = html`<svg
   <polyline points="23 4 23 10 17 10"></polyline>
   <polyline points="1 20 1 14 7 14"></polyline>
   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+</svg>`;
+
+export const x = html`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="feather feather-x"
+>
+  <line x1="18" y1="6" x2="6" y2="18"></line>
+  <line x1="6" y1="6" x2="18" y2="18"></line>
+</svg>`;
+
+export const volume2 = html`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="feather feather-volume-2"
+>
+  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+  <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+</svg>`;
+
+export const shuffle = html`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="feather feather-shuffle"
+>
+  <polyline points="16 3 21 3 21 8"></polyline>
+  <line x1="4" y1="20" x2="21" y2="3"></line>
+  <polyline points="21 16 21 21 16 21"></polyline>
+  <line x1="15" y1="15" x2="21" y2="21"></line>
+  <line x1="4" y1="4" x2="9" y2="9"></line>
+</svg>`;
+
+export const music = html`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="feather feather-music"
+>
+  <path d="M9 18V5l12-2v13"></path>
+  <circle cx="6" cy="18" r="3"></circle>
+  <circle cx="18" cy="16" r="3"></circle>
 </svg>`;
