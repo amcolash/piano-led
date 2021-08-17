@@ -45,18 +45,23 @@ export default function Folder(props) {
             )}
           </div>
 
-          <div style=${{
-            position: 'absolute',
-            left: '-1rem',
-            bottom: '-0.5rem',
-            padding: '1rem 0.5rem',
-            width: '100%',
-            background: 'var(--palette2)',
-            borderTopRightRadius: '0.5rem',
-          }}>
-            <div style=${{ fontSize: '1.35rem', color: 'var(--palette1)', marginBottom: '0.5rem' }}>${props.status.music}</div>
-            <${Controls} status=${props.status} getData=${props.getData} />
-          </div>
+          ${
+            props.status.music &&
+            html`<div
+              style=${{
+                position: 'absolute',
+                left: '-1rem',
+                bottom: '-0.5rem',
+                padding: '1rem 0rem 1rem 1rem',
+                width: '100%',
+                background: 'var(--palette2)',
+                borderTopRightRadius: '0.5rem',
+              }}
+            >
+              <div style=${{ fontSize: '1.35rem', color: 'var(--palette1)', marginBottom: '0.5rem' }}>${props.status.music}</div>
+              <${Controls} status=${props.status} getData=${props.getData} />
+            </div>`
+          }
 
         </div>
         <div class="select" style=${{ width: '100%' }}>
