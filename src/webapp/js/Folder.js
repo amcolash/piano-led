@@ -19,16 +19,16 @@ export default function Folder(props) {
       style=${{
         position: 'absolute',
         padding: '1rem',
-        background: Palette[2],
+        background: 'var(--palette3)',
         boxShadow: '0 0 2rem rgba(0,0,0,0.3)',
         overflow: 'hidden',
         borderRadius: '0.5rem',
       }}
     >
-      <div style=${{ color: Palette[0] }}>Select Music</div>
+      <div style=${{ color: 'var(--palette1)' }}>Select Music</div>
       <button
         class="icon"
-        style=${{ position: 'absolute', right: '0.5rem', top: '0.5rem', color: Palette[0] }}
+        style=${{ position: 'absolute', right: '0.5rem', top: '0.5rem', color: 'var(--palette1)' }}
         onClick=${props.closeFolder}
       >
         ${x}

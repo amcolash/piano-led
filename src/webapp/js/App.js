@@ -7,7 +7,7 @@ import Settings from './Settings.js';
 import Volume from './Volume.js';
 
 import { useInterval } from './useInterval.js';
-import { Palette, Server } from './util.js';
+import { Server } from './util.js';
 
 function App() {
   const [status, setStatus] = useState({});
@@ -26,8 +26,8 @@ function App() {
   return html`
     <div
       style=${{
-        background: Palette[0],
-        color: Palette[3],
+        background: 'var(--palette1)',
+        color: 'var(--palette4)',
         fontFamily: 'sans-serif',
         fontSize: '2rem',
         width: '100vw',
