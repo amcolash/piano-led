@@ -2,7 +2,8 @@ import { html, useState } from 'https://unpkg.com/htm/preact/standalone.module.j
 import { shuffle, volume2, x } from './icons.js';
 
 import { Button } from './Button.js';
-import { Palette, Server, title } from './util.js';
+import { Server, title } from './util.js';
+import Controls from './Controls.js';
 
 export default function Folder(props) {
   const musicRoot = props.musicData.musicRoot;
@@ -33,14 +34,30 @@ export default function Folder(props) {
       >
         ${x}
       </button>
-      <div style=${{ display: 'flex', overflow: 'hidden', height: 'calc(100% - 2.75rem)', marginTop: '1rem' }}>
-        <div class="select" style=${{ width: '30%', marginRight: '0.5rem', overflow: 'hidden' }}>
-          ${folders.map(
-            (f) =>
-              html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
-                ${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
-              </${Button}>`
-          )}
+      <div style=${{ display: 'flex', height: 'calc(100% - 2.25rem)', marginTop: '1rem' }}>
+        <div style=${{ width: '30%', marginRight: '0.5rem', position: 'relative' }}>
+          <div class="select" style=${{ overflow: 'hidden' }}>
+            ${folders.map(
+              (f) =>
+                html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
+                  ${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
+                </${Button}>`
+            )}
+          </div>
+
+          <div style=${{
+            position: 'absolute',
+            left: '-1rem',
+            bottom: '-0.5rem',
+            padding: '1rem 0.5rem',
+            width: '100%',
+            background: 'var(--palette2)',
+            borderTopRightRadius: '0.5rem',
+          }}>
+            <div style=${{ fontSize: '1.35rem', color: 'var(--palette1)', marginBottom: '0.5rem' }}>${props.status.music}</div>
+            <${Controls} status=${props.status} getData=${props.getData} />
+          </div>
+
         </div>
         <div class="select" style=${{ width: '100%' }}>
           <${Button}
