@@ -84,7 +84,7 @@ class MidiPorts:
   @classmethod
   def updateVolume(cls):
     if cls.nextVolume != cls.currentVolume and cls.pianoOn():
-      newVol = min(127, max(0, cls.nextVolume))
+      newVol = int(min(127, max(0, cls.nextVolume)))
 
       try:
         # change volume for each of the 16 channels

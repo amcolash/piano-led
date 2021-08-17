@@ -24,9 +24,13 @@ class Music:
       print('Queueing music in folder: ' + str(folder))
       cls.playlist = list(glob.glob(folder + '/**/*.mid', recursive=True))
       random.shuffle(cls.playlist) # always shuffled for now
-    elif file != None:
+
+    if file != None:
       print('Queueing file: ' + str(file))
-      cls.playlist = [file]
+      if folder == None:
+        cls.playlist = [file]
+      else:
+        cls.playlist.insert(0, file)
 
     Config.SCROLL = 1
 
@@ -43,6 +47,9 @@ class Music:
     cls.process = subprocess.Popen(['aplaymidi', '--port=System MIDI In', file],
       stdout=subprocess.PIPE,
       universal_newlines=True)
+
+    # Try to retain volume on new midi file (many set the volumes of channels at start of song)
+    MidiPorts.currentVolume += 0.0001
 
     Config.DIRTY = True
 
