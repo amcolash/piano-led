@@ -4,6 +4,7 @@ from config import Config, PlayMode
 from i2c import I2C
 from leds import Leds
 from palettes import hsv_to_rgb_int
+import util
 
 class MidiInputHandler(object):
   def __init__(self, port, midi_out_piano):
@@ -22,7 +23,10 @@ class MidiInputHandler(object):
 
     # If we want to forward midi to piano and got an event
     if self.midi_out_piano and self.midi_out_piano.is_port_open():
-      self.midi_out_piano.send_message(message)
+      try:
+        self.midi_out_piano.send_message(message)
+      except:
+        print(util.niceTime() + ': ' + str(sys.exc_info()))
 
     # Strip channel from message - all channels will be played
     event = message[0] >> 4

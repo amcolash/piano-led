@@ -1,18 +1,21 @@
 import rtmidi
-from rtmidi.midiconstants import (ALL_SOUND_OFF, CONTROL_CHANGE, RESET_ALL_CONTROLLERS, VOLUME)
+from rtmidi.midiconstants import (ALL_SOUND_OFF, CONTROL_CHANGE, END_OF_EXCLUSIVE, RESET_ALL_CONTROLLERS, SYSTEM_EXCLUSIVE)
 import sys
 import time
 
 from config import Config
 from leds import Leds
 from midi_input_handler import MidiInputHandler
+import util
+
+MAX_VOLUME = 16383
 
 # This class is a singleton
 
 class MidiPorts:
   midiCount = 100
-  currentVolume = 127
-  nextVolume = 127
+  currentVolume = 0
+  nextVolume = 0
 
   midi_in_piano = rtmidi.MidiIn()
   midi_in_system = rtmidi.MidiIn()
@@ -54,11 +57,11 @@ class MidiPorts:
             cls.midi_out_piano.open_port(1)
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
             cls.currentVolume = 0
-            cls.nextVolume = 127
+            cls.nextVolume = MAX_VOLUME
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:
-        print(sys.exc_info())
+        print(util.niceTime() + ': ' + str(sys.exc_info()))
 
   @classmethod
   def pianoOn(cls):
@@ -73,7 +76,7 @@ class MidiPorts:
         cls.midi_out_piano.send_message([CONTROL_CHANGE, ALL_SOUND_OFF, 0])
         cls.midi_out_piano.send_message([CONTROL_CHANGE, RESET_ALL_CONTROLLERS, 0])
       except:
-        print(sys.exc_info())
+        print(util.niceTime() + ': ' + str(sys.exc_info()))
 
     # In addition to resetting, clear LEDs
     Leds.clearLeds()
@@ -84,16 +87,17 @@ class MidiPorts:
   @classmethod
   def updateVolume(cls):
     if cls.nextVolume != cls.currentVolume and cls.pianoOn():
-      newVol = int(min(127, max(0, cls.nextVolume)))
+      newVol = int(min(16383, max(0, cls.nextVolume)))
 
+      # Split into low/high bits of 14 bit value
+      low = newVol & 0x7B
+      high = newVol >> 7
+
+      # Send master MIDI device volume message based off of: https://www.recordingblogs.com/wiki/midi-master-volume-message
       try:
-        # change volume for each of the 16 channels
-        for c in range(15):
-          # Send new MIDI volume
-          cls.midi_out_piano.send_message([CONTROL_CHANGE | c, VOLUME, newVol])
-          time.sleep(0.001)
+        cls.midi_out_piano.send_message([SYSTEM_EXCLUSIVE, 0x7F, 0x7F, 0x04, 0x01, low, high, END_OF_EXCLUSIVE])
       except:
-        print(sys.exc_info())
+        print(util.niceTime() + ': ' + str(sys.exc_info()))
 
       cls.currentVolume = newVol
 

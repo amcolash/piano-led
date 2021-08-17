@@ -12,6 +12,7 @@ from midi_ports import MidiPorts
 from music import Music, musicRoot
 from palettes import Palette
 from power import Power
+import util
 
 hostName = "0.0.0.0"
 
@@ -125,7 +126,7 @@ class Server(BaseHTTPRequestHandler):
     try:
       cls.webServer.serve_forever()
     except:
-      print(sys.exc_info())
+      print(util.niceTime() + ': ' + str(sys.exc_info()))
 
     cls.webServer.server_close()
     print("Server stopped.")
@@ -149,5 +150,5 @@ class Server(BaseHTTPRequestHandler):
         self.wfile.write(r)
 
     except:
-      print(sys.exc_info())
+      print(util.niceTime() + ': ' + str(sys.exc_info()))
       self.send_response(500)

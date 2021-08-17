@@ -6,6 +6,7 @@ import subprocess
 from config import Config
 from menu_item import Icons, MenuItem
 from midi_ports import MidiPorts
+import util
 
 rootPath = str(Path(__file__).parent)
 musicRoot = str(Path(rootPath + '/../../midi').resolve())
@@ -48,9 +49,6 @@ class Music:
       stdout=subprocess.PIPE,
       universal_newlines=True)
 
-    # Try to retain volume on new midi file (many set the volumes of channels at start of song)
-    MidiPorts.currentVolume += 0.0001
-
     Config.DIRTY = True
 
   @classmethod
@@ -83,7 +81,7 @@ class Music:
           cls.process = None
     except:
       print('Something went wrong checking process!')
-      print(sys.exc_info())
+      print(util.niceTime() + ': ' + str(sys.exc_info()))
       if cls.process != None:
         cls.process = None
         cls.process.terminate()
