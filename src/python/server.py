@@ -1,3 +1,4 @@
+import glob
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from pathlib import Path
@@ -21,6 +22,7 @@ class GetRequest:
     self.handler = handler
 
 GetRequests = {
+  '/files': GetRequest('/files', lambda req: files(req)),
   '/next': GetRequest('/next', lambda req: next(req)),
   '/palette': GetRequest('/palette', lambda req: palette(req)),
   '/play': GetRequest('/play', lambda req: play(req)),
@@ -30,6 +32,17 @@ GetRequests = {
   '/volume': GetRequest('/volume', lambda req: volume(req)),
   '*': GetRequest('/', lambda req: other(req), 'application/html')
 }
+
+def files(req):
+  folders = Music.getFolders()
+  files = {}
+
+  for f in folders:
+    folderFiles = list(glob.glob(f + '/**/*.mid', recursive=True))
+    folderFiles.sort()
+    files[f] = folderFiles
+
+  return bytes(json.dumps({ 'files': files, 'musicRoot': musicRoot }), "utf-8")
 
 def next(req):
   Music.stop(clear=False)
@@ -46,20 +59,31 @@ def palette(req):
     return bytes("No palette selected", "utf-8")
 
 def play(req):
-  f = musicRoot
+  folder = musicRoot
+  file = None
 
   query = parse_qs(req.query)
-  if 'folder' in query: f = query['folder'][0]
+  if 'folder' in query:
+    folder = query['folder'][0]
 
-  Music.queue(folder=f)
-  return bytes("Starting music in folder: " + str(f), "utf-8")
+  if 'file' in query:
+    file = query['file'][0]
+
+  Music.queue(folder, file)
+
+  return bytes("Starting music: " + str(file) + ', ' + str(folder), "utf-8")
 
 def status(req):
   song = Path(Music.nowPlaying or '').stem if Music.nowPlaying != None else None
 
   return bytes(json.dumps({
-    'on': MidiPorts.pianoOn(), 'music': song, 'musicRoot': musicRoot, 'folders': Music.getFolders(), 'volume': MidiPorts.currentVolume,
-    'playlist': [Music.nowPlaying] + Music.playlist, 'palettes': list(map(lambda p: p.name, list(Palette)))
+    'on': MidiPorts.pianoOn(),
+    'music': song,
+    # 'musicRoot': musicRoot,
+    # 'folders': Music.getFolders(),
+    'volume': MidiPorts.currentVolume,
+    # 'playlist': [Music.nowPlaying] + Music.playlist,
+    'palettes': list(map(lambda p: p.name, list(Palette)))
   }), "utf-8")
 
 def power(req):
