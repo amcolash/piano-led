@@ -73,6 +73,13 @@ option {
   text-transform: capitalize;
 }
 
+.folderList .option .optionIcon {
+  display: flex;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  margin-right: 1rem;
+}
+
 .folderList .option.selected {
   background: var(--palette5);
   color: var(--palette2);
