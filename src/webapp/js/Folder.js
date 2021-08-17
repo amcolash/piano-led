@@ -45,14 +45,14 @@ export default function Folder(props) {
             class="option"
             onClick=${(e) => fetch(`${Server}/play?folder=${selectedFolder}`).then(() => setTimeout(props.getData, 500))}
           >
-            <div style=${{ minWidth: '1.5rem', minHeight: '1.5rem', marginRight: '1rem' }}>${shuffle}</div>
+            <div class="optionIcon">${shuffle}</div>
             <div>Shuffle Folder</div>
           </${Button}>
           ${(props.musicData.files[selectedFolder] || []).map((f) => {
             const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
             return html`<${Button} class=${`option ${isPlaying ? 'selected' : ''}`} onClick=${(e) =>
-              fetch(`${Server}/play?file=${f}`).then(() => setTimeout(props.getData, 500))}>
-              ${isPlaying && html`<div style=${{ minWidth: '1.5rem', minHeight: '1.5rem', marginRight: '1rem' }}>${volume2}</div>`}
+              fetch(`${Server}/play?file=${f}&folder=${selectedFolder}`).then(() => setTimeout(props.getData, 500))}>
+              ${isPlaying && html`<div class="optionIcon">${volume2}</div>`}
               <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>${f
               .replace(selectedFolder + '/', '')
               .replace('.mid', '')
