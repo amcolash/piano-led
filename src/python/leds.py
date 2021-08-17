@@ -4,6 +4,10 @@ from rpi_ws281x import PixelStrip, Color
 import time
 
 from config import AmbientMode, Config, PlayMode
+import util
+
+# Make a lookup cache of every color to try to have better performance
+CACHED_COLORS = {}
 
 # This class is a singleton
 
@@ -122,7 +126,17 @@ class Leds:
         # led['current'] = palettes.lerpColor(led['current'], currentTarget, 0.2)
 
         if led['current'] != led['previous']:
-          cls.strip.setPixelColor(l, Color(int(led['current'][0]), int(led['current'][1]), int(led['current'][2])))
+          vals = int(led['current'][0]), int(led['current'][1]), int(led['current'][2])
+          rgb_lookup = str(vals[0]) + str(vals[1]) + str(vals[2])
+
+          # Doesn't look like this helps at all :(
+          if rgb_lookup in CACHED_COLORS:
+            color = CACHED_COLORS[rgb_lookup]
+          else:
+            color = Color(vals[0], vals[1], vals[2])
+            CACHED_COLORS[rgb_lookup] = color
+
+          cls.strip.setPixelColor(l, color)
           dirty = True
 
 
