@@ -11,7 +11,7 @@ export default function Volume(props) {
     <input
       type="range"
       min="0"
-      max="127"
+      max="16383"
       value=${volume}
       onChange=${(e) => fetch(`${Server}/volume?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
     />
