@@ -9,12 +9,11 @@ import { useInterval } from './useInterval.js';
 import { Server } from './util.js';
 
 function App() {
-  const [status, setStatus] = useState({});
+  const [status, setStatus] = useState({ on: false });
   const [musicData, setMusicData] = useState({ files: {} });
 
   const getData = () => {
     const res = fetch(`${Server}/status`).then((response) => response.json());
-
     res.then((data) => setStatus(data));
 
     return res;
@@ -55,11 +54,9 @@ function App() {
     >
       <div style=${{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
         <${Settings} status=${status} getData=${getData} />
-        ${!musicData.musicRoot
+        ${!musicData.musicRoot || !status.palettes
           ? html`<div>Loading...</div>`
-          : status.on
-          ? html`<${Folder} musicData=${musicData} status=${status} getData=${getData} />`
-          : html`<div>Piano Off</div>`}
+          : html`<${Folder} musicData=${musicData} status=${status} getData=${getData} />`}
       </div>
     </div>
   `;

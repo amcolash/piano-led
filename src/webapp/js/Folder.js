@@ -2,8 +2,10 @@ import { html, useState } from 'https://unpkg.com/htm/preact/standalone.module.j
 import { shuffle, volume2, x } from './icons.js';
 
 import { Button } from './Button.js';
-import { Server, title } from './util.js';
 import Controls from './Controls.js';
+
+import { eventBus } from './eventBus.js';
+import { Server, title } from './util.js';
 
 export default function Folder(props) {
   const musicRoot = props.musicData.musicRoot;
@@ -13,6 +15,17 @@ export default function Folder(props) {
   });
 
   const [selectedFolder, setSelectedFolder] = useState(musicRoot);
+  const [toBePlayed, setToBePlayed] = useState();
+
+  const play = (file, folder) => {
+    if (!props.status.on) {
+      eventBus.dispatch('power', {
+        complete: () => {
+          fetch(`${Server}/play?file=${file}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
+        },
+      });
+    } else fetch(`${Server}/play?file=${file}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
+  };
 
   return html`
     <div
@@ -43,26 +56,29 @@ export default function Folder(props) {
         <div class="select" style=${{ width: '100%' }}>
           <${Button}
             class="option"
-            onClick=${(e) => fetch(`${Server}/play?folder=${selectedFolder}`).then(() => setTimeout(props.getData, 500))}
+            onClick=${(e) => play(undefined, selectedFolder)}
           >
             <div class="optionIcon">${shuffle}</div>
             <div>Shuffle Folder</div>
           </${Button}>
           ${(props.musicData.files[selectedFolder] || []).map((f) => {
             const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
-            return html`<${Button} class=${`option ${isPlaying ? 'selected' : ''}`} onClick=${(e) =>
-              fetch(`${Server}/play?file=${f}&folder=${selectedFolder}`).then(() => setTimeout(props.getData, 500))}>
+            return html`<${Button} class=${`option ${isPlaying || f === toBePlayed ? 'selected' : ''}`} onClick=${(e) =>
+              play(f, selectedFolder)}>
               ${isPlaying && html`<div class="optionIcon">${volume2}</div>`}
-              <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>${f
-              .replace(selectedFolder + '/', '')
-              .replace('.mid', '')
-              .replace('/', ' / ')}</div>
+              <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>
+              ${f
+                .replace(selectedFolder + '/', '')
+                .replace('.mid', '')
+                .replace('/', ' / ')}
+              </div>
             </${Button}>`;
           })}
         </div>
       </div>
       ${
         props.status.music &&
+        props.status.on &&
         html`<div
           style=${{
             padding: '1rem',
