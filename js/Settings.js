@@ -1,11 +1,12 @@
-import { html, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { html, useEffect, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
 
+import { eventBus } from './eventBus.js';
 import { power, refreshCw, sliders } from './icons.js';
 import { Server } from './util.js';
 
 export default function Settings(props) {
   // helper function to retry status checking multiple times in quicker intervals
-  const togglePower = () => {
+  const togglePower = (cb) => {
     setToggling(true);
 
     fetch(`${Server}/stop`).then(() => fetch(`${Server}/power`));
@@ -24,6 +25,8 @@ export default function Settings(props) {
 
               // Clear remaining timeouts
               timeouts.forEach((t) => clearTimeout(t));
+
+              if (cb) cb();
             }
           });
         }, i * 1500)
@@ -43,6 +46,12 @@ export default function Settings(props) {
       }
     : { transform: 'rotate(0deg)' };
 
+  useEffect(() => {
+    eventBus.on('power', (message) => togglePower(message.complete));
+
+    return () => eventBus.remove('power');
+  }, []);
+
   return html`
     <div style=${{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex' }}>
       <div class="icon">
@@ -59,7 +68,12 @@ export default function Settings(props) {
       </div>
       <button
         class="icon"
-        style=${{ marginLeft: '0.5rem', cursor: toggling ? 'default' : undefined, ...spinning }}
+        style=${{
+          marginLeft: '0.5rem',
+          filter: props.status.on && !toggling ? 'drop-shadow(0 0 0.35rem var(--palette4)) brightness(1.25)' : undefined,
+          cursor: toggling ? 'default' : undefined,
+          ...spinning,
+        }}
         onClick=${togglePower}
         disabled=${toggling}
       >
