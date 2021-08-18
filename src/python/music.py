@@ -21,17 +21,22 @@ class Music:
     if cls.process != None:
       cls.stop()
 
+    # Keep a temp list so the whole list is changed at once, to avoid threading issues
+    p = []
+
     if folder != None:
       print('Queueing music in folder: ' + str(folder))
-      cls.playlist = list(glob.glob(folder + '/**/*.mid', recursive=True))
+      p = list(glob.glob(folder + '/**/*.mid', recursive=True))
       random.shuffle(cls.playlist) # always shuffled for now
 
     if file != None:
       print('Queueing file: ' + str(file))
       if folder == None:
-        cls.playlist = [file]
+        p = [file]
       else:
-        cls.playlist.insert(0, file)
+        p.insert(0, file)
+
+    cls.playlist = p
 
     Config.SCROLL = 1
 
