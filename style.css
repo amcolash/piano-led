@@ -1,9 +1,28 @@
 :root {
-  --palette1: #1981a4;
-  --palette2: #43adbb;
-  --palette3: #84c7d8;
-  --palette4: #f7e5d2;
-  --palette5: #0d3c4b;
+  --palette1-h: 195;
+  --palette1-s: 74%;
+  --palette1-l: 37%;
+  --palette1: hsl(var(--palette1-h), var(--palette1-s), var(--palette1-l));
+
+  --palette2-h: 187;
+  --palette2-s: 47%;
+  --palette2-l: 50%;
+  --palette2: hsl(var(--palette2-h), var(--palette2-s), var(--palette2-l));
+
+  --palette3-h: 192;
+  --palette3-s: 52%;
+  --palette3-l: 68%;
+  --palette3: hsl(var(--palette3-h), var(--palette3-s), var(--palette3-l));
+
+  --palette4-h: 31;
+  --palette4-s: 70%;
+  --palette4-l: 90%;
+  --palette4: hsl(var(--palette4-h), var(--palette4-s), var(--palette4-l));
+
+  --palette5-h: 195;
+  --palette5-s: 70%;
+  --palette5-l: 17%;
+  --palette5: hsl(var(--palette5-h), var(--palette5-s), var(--palette5-l));
 }
 
 body {
@@ -92,7 +111,7 @@ option {
 }
 
 .folderList .option:hover {
-  background: var(--palette1);
+  background: hsla(var(--palette5-h), var(--palette5-s), calc(var(--palette5-l) * 1.5), 0.85);
   color: var(--palette3);
 }
 
@@ -141,7 +160,8 @@ input[type='range']::-webkit-slider-thumb {
 }
 
 ::-webkit-scrollbar-track {
-  background-color: transparent;
+  background-color: hsla(var(--palette1-h), var(--palette1-s), var(--palette1-l), 0.3);
+  border-radius: 0.75rem;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -152,5 +172,5 @@ input[type='range']::-webkit-slider-thumb {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--palette2);
+  background-color: hsl(var(--palette1-h), var(--palette1-s), calc(var(--palette1-l) * 0.85));
 }
