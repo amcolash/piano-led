@@ -72,12 +72,11 @@ export default function Settings(props) {
           marginLeft: '0.5rem',
           filter: props.status.on && !toggling ? 'drop-shadow(0 0 0.35rem var(--palette4)) brightness(1.25)' : undefined,
           cursor: toggling ? 'default' : undefined,
-          ...spinning,
         }}
-        onClick=${togglePower}
+        onClick=${() => togglePower()}
         disabled=${toggling}
       >
-        <div style=${{ opacity: props.status.on ? 1 : 0.6 }}>${toggling ? refreshCw : power}</div>
+        <div style=${{ opacity: props.status.on ? 1 : 0.6, ...spinning }}>${toggling ? refreshCw : power}</div>
       </button>
     </div>
   `;
