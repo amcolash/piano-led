@@ -24,6 +24,16 @@ body {
   cursor: pointer;
 }
 
+.settings > .icon {
+  padding: 0.35rem;
+}
+
+.settings > .icon:hover {
+  background: var(--palette5);
+  color: var(--palette2);
+  border-radius: 0.35rem;
+}
+
 @media only screen and (max-width: 600px) {
   html {
     font-size: 0.85em;
