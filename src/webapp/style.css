@@ -71,6 +71,7 @@ option {
   cursor: pointer;
   user-select: none;
   text-transform: capitalize;
+  border-radius: 0.25rem;
 }
 
 .folderList .option .optionIcon {
@@ -80,10 +81,14 @@ option {
   margin-right: 1rem;
 }
 
+.folderList .option:hover {
+  background: var(--palette1);
+  color: var(--palette3);
+}
+
 .folderList .option.selected {
   background: var(--palette5);
   color: var(--palette2);
-  border-radius: 0.25rem;
 }
 
 .folderList .controls {
