@@ -53,7 +53,7 @@ export default function Settings(props) {
   }, []);
 
   return html`
-    <div style=${{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex' }}>
+    <div class="settings" style=${{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex' }}>
       <div class="icon">
         ${sliders}
         <select
@@ -77,7 +77,7 @@ export default function Settings(props) {
         onClick=${togglePower}
         disabled=${toggling}
       >
-        ${toggling ? refreshCw : power}
+        <div style=${{ opacity: props.status.on ? 1 : 0.6 }}>${toggling ? refreshCw : power}</div>
       </button>
     </div>
   `;
