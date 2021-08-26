@@ -53,13 +53,9 @@ body {
   border-radius: 0.35rem;
 }
 
-select {
-  appearance: none;
-  padding: 0.25rem;
-}
-
-option {
-  color: black;
+.brightness input[type='range'] {
+  background-color: var(--palette3);
+  border: 0.2rem solid var(--palette3);
 }
 
 .folderBar {
@@ -85,6 +81,7 @@ option {
 
 .folderList .select {
   height: calc(100% - 0.5rem);
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
@@ -122,6 +119,15 @@ option {
   height: 2.5rem;
   width: 2.5rem;
   color: var(--palette2);
+}
+
+select {
+  appearance: none;
+  padding: 0.25rem;
+}
+
+option {
+  color: black;
 }
 
 input[type='text'],
