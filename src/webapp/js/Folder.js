@@ -46,11 +46,11 @@ export default function Folder(props) {
       const f = o.innerText.replace('/ ', '/').replace(' /', '/');
       const file = f.substring(f.lastIndexOf('/') + 1, f.length);
 
-      if (file === props.status.music) o.focus();
+      if (file.trim().toLowerCase() === (props.status.music || '').trim().toLowerCase()) o.focus();
     });
 
     setToBePlayed();
-  }, [props.status.music]);
+  }, [props.status.music, selectedFolder]);
 
   return html`
     <div
@@ -122,7 +122,16 @@ export default function Folder(props) {
           </div>
         </div>
 
-        <div class="files" style=${{ width: '100%', padding: '0.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div class="files" style=${{
+          width: '100%',
+          height: '100%',
+          padding: '0.5rem 0',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          overflowX: 'hidden',
+          overflowY: 'hidden',
+        }}>
           <input type="search" placeholder="Search" value=${search} onInput=${(e) => setSearch(e.target.value)}
             style=${{
               width: '95%',
