@@ -3,13 +3,14 @@ from board import SCL, SDA
 import busio
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import RPi.GPIO as GPIO
+import sys
 import time
 
 from config import AmbientMode, Config, PendingAction, PlayMode
 from menu_item import Icons, MenuItem
 from music import Music
 from palettes import Palette
-from util import enumName
+from util import enumName, niceTime
 
 DOWN_BUTTON = 7
 ENTER_BUTTON = 8
@@ -32,6 +33,7 @@ mainMenu = [
     MenuItem('Display', items=[
       MenuItem('Display Timeout',  lambda value: Config.updateValue('DISPLAY_OFF_TIMEOUT', value), value=lambda: Config.DISPLAY_OFF_TIMEOUT, options=[15, 30, 60, 120], icon=Icons['clock']),
       MenuItem('Menu Reset Timeout',  lambda value: Config.updateValue('DISPLAY_MENU_RESET', value), value=lambda: Config.DISPLAY_MENU_RESET, options=[1, 2, 5, 10, 30], icon=Icons['clock']),
+      MenuItem('Brightness',  lambda value: Config.updateValue('MAX_AMBIENT_BRIGHTNESS', value), value=lambda: Config.MAX_AMBIENT_BRIGHTNESS, options=[0, 5, 10, 15, 20], icon=Icons['light']),
     ], icon=Icons['display']),
   ]),
   MenuItem('System', items=[
@@ -111,7 +113,11 @@ class Display:
           self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', parent=selected)] + selected.items}]
         elif len(selected.options) > 0:
           scroll = 1
-          if selected.value != None: scroll = selected.options.index(selected.value()) + 1
+
+          try:
+            if selected.value != None: scroll = selected.options.index(selected.value()) + 1
+          except:
+            print(niceTime() + ': ' + str(sys.exc_info()))
 
           options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, value=lambda: i, parent=selected), selected.options))
           self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', parent=selected)] + options}]

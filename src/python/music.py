@@ -27,7 +27,7 @@ class Music:
     if folder != None:
       print('Queueing music in folder: ' + str(folder))
       p = list(glob.glob(folder + '/**/*.mid', recursive=True))
-      random.shuffle(cls.playlist) # always shuffled for now
+      random.shuffle(p) # always shuffled for now
 
     if file != None:
       print('Queueing file: ' + str(file))
@@ -35,6 +35,8 @@ class Music:
         p = [file]
       else:
         p.insert(0, file)
+
+    print(p)
 
     cls.playlist = p
 
