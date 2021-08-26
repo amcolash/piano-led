@@ -133,8 +133,8 @@ export default function Folder(props) {
 
         <div class="files" style=${{
           width: '100%',
-          height: '100%',
-          padding: '0.5rem 0',
+          height: 'calc(100% - 0.5rem)',
+          paddingBottom: '0.5rem',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
