@@ -123,7 +123,7 @@ class Leds:
           # elif led['current'][c] < currentTarget[c]: led['current'][c] += Config.FADE_SPEED
           # elif led['current'][c] > currentTarget[c]: led['current'][c] -= Config.FADE_SPEED
 
-        # led['current'] = palettes.lerpColor(led['current'], currentTarget, 0.2)
+        # led['current'] = Palettes.lerpColor(led['current'], currentTarget, 0.2)
 
         if led['current'] != led['previous']:
           vals = int(led['current'][0]), int(led['current'][1]), int(led['current'][2])

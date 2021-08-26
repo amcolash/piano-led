@@ -3,7 +3,7 @@ import time
 from config import Config, PlayMode
 from i2c import I2C
 from leds import Leds
-from palettes import hsv_to_rgb_int
+from palettes import Palettes
 import util
 
 class MidiInputHandler(object):
@@ -58,7 +58,7 @@ class MidiInputHandler(object):
 
       # next color in cycle
       if Config.PLAY_MODE == PlayMode.CYCLE_COLORS:
-        newColor = hsv_to_rgb_int(self.colorIndex / 360, 1, 0.3)
+        newColor = Palettes.hsv_to_rgb_int(self.colorIndex / 360, 1, 0.3)
         self.colorIndex = (self.colorIndex + 10) % 360
 
       # brighten current color (assume max ambient rgb of about 20)

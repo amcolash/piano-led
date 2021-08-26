@@ -5,7 +5,7 @@ from pathlib import Path
 import pytz
 import sys
 
-import palettes
+from palettes import Palette, Palettes
 
 # File path of settings file
 rootPath = str(Path(__file__).parent)
@@ -16,10 +16,12 @@ savedValues = [
   'AMBIENT_ENABLED',
   'AMBIENT_MODE',
   'NIGHT_MODE_ENABLED',
+  'NIGHT_MODE_TIMEOUT',
   'PLAY_MODE',
   'CYCLE_SPEED',
   'DISPLAY_MENU_RESET',
   'DISPLAY_OFF_TIMEOUT',
+  'MAX_AMBIENT_BRIGHTNESS',
 ]
 
 # PLAYING_MODE Options
@@ -95,14 +97,15 @@ class Configuration:
     self.PLAY_MODE = PlayMode.BRIGHTEN_CURRENT
 
     # Scalar of how much to brighten colors
+    self.MAX_AMBIENT_BRIGHTNESS = 20
     self.BRIGHTEN_AMOUNT = 10
 
     # Number of keys to ripple from
     self.RIPPLE_KEYS = 8
 
     # Color Configuration
-    self.CURRENT_PALETTE = palettes.Palette.Ocean
-    self.PALETTE = palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)
+    self.CURRENT_PALETTE = Palette.Ocean
+    self.PALETTE = Palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)
     self.PALETTE_DIRTY = 0
 
     # Ambient Configuration
@@ -117,7 +120,7 @@ class Configuration:
 
   def updatePalette(self, pal, save=True):
     self.CURRENT_PALETTE = pal
-    self.PALETTE = palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)
+    self.PALETTE = Palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)
 
     # Set this value to a counter so that we retry to set the value a few times, this is due to the button press triggering potentially
     # in the middle of the update cycle. We should technically only need 2 updates, but using 3 just in case. Plus, it adds a nice fade
@@ -141,10 +144,16 @@ class Configuration:
         for s in savedValues:
           try:
             if s == 'CURRENT_PALETTE':
-                found = getattr(palettes.Palette, loaded[s])
+                found = getattr(Palette, loaded[s])
                 self.updatePalette(found, False)
             elif s in loaded:
               setattr(self, s, loaded[s])
+
+              if s == 'MAX_AMBIENT_BRIGHTNESS':
+                Palettes.updateBrightness(loaded[s])
+
+                # Regenerate palette based on new brightness
+                self.updatePalette(self.CURRENT_PALETTE, False)
             else:
               print('Could not load saved value: ' + s)
           except:
@@ -183,6 +192,12 @@ class Configuration:
           self.updatePalette(values[i])
         else:
           setattr(self, keys[i], values[i])
+
+          if keys[i] == 'MAX_AMBIENT_BRIGHTNESS':
+            Palettes.updateBrightness(values[i])
+
+            # Regenerate palette based on new brightness
+            self.updatePalette(self.CURRENT_PALETTE, False)
 
       self.TO_UPDATE = {}
 

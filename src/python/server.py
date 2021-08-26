@@ -23,6 +23,7 @@ class GetRequest:
     self.handler = handler
 
 GetRequests = {
+  '/brightness': GetRequest('/brightness', lambda req: brightness(req)),
   '/files': GetRequest('/files', lambda req: files(req)),
   '/next': GetRequest('/next', lambda req: next(req)),
   '/palette': GetRequest('/palette', lambda req: palette(req)),
@@ -33,6 +34,17 @@ GetRequests = {
   '/volume': GetRequest('/volume', lambda req: volume(req)),
   '*': GetRequest('/', lambda req: other(req), 'application/html')
 }
+
+def brightness(req):
+  query = parse_qs(req.query)
+
+  if 'value' in query:
+    val = max(0, min(20, int(query['value'][0])))
+    Config.updateValue('MAX_AMBIENT_BRIGHTNESS', val)
+
+    return bytes("Setting brightness to " + str(val), "utf-8")
+  else:
+    return bytes("No brightness specified", "utf-8")
 
 def files(req):
   folders = Music.getFolders()
@@ -79,12 +91,11 @@ def status(req):
 
   return bytes(json.dumps({
     'on': MidiPorts.pianoOn(),
+    'brightness': Config.MAX_AMBIENT_BRIGHTNESS,
     'music': song,
-    # 'musicRoot': musicRoot,
-    # 'folders': Music.getFolders(),
     'volume': MidiPorts.currentVolume,
+    'palettes': list(map(lambda p: p.name, list(Palette))),
     # 'playlist': [Music.nowPlaying] + Music.playlist,
-    'palettes': list(map(lambda p: p.name, list(Palette)))
   }), "utf-8")
 
 def power(req):
