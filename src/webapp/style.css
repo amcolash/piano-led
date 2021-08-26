@@ -53,6 +53,10 @@ body {
   border-radius: 0.35rem;
 }
 
+.settings .brightness {
+  margin-right: auto;
+}
+
 .brightness input[type='range'] {
   background-color: var(--palette3);
   border: 0.2rem solid var(--palette3);
@@ -190,14 +194,6 @@ input[type='range']::-webkit-slider-thumb {
 @media only screen and (max-width: 600px) {
   html {
     font-size: 0.85em;
-  }
-
-  .settings {
-    width: calc(100% - 2rem);
-  }
-
-  .brightness {
-    margin-right: auto;
   }
 
   .folderList {
