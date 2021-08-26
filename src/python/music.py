@@ -36,8 +36,6 @@ class Music:
       else:
         p.insert(0, file)
 
-    print(p)
-
     cls.playlist = p
 
     Config.SCROLL = 1
