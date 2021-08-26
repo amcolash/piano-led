@@ -46,11 +46,17 @@ export default function Folder(props) {
       const f = o.innerText.replace('/ ', '/').replace(' /', '/');
       const file = f.substring(f.lastIndexOf('/') + 1, f.length);
 
-      if (file.trim().toLowerCase() === (props.status.music || '').trim().toLowerCase()) o.focus();
+      if (search.length === 0 && file.trim().toLowerCase() === (props.status.music || '').trim().toLowerCase()) {
+        let focusAfter;
+        if (document.activeElement.className === 'search') focusAfter = document.activeElement;
+
+        o.focus();
+        if (focusAfter) focusAfter.focus();
+      }
     });
 
     setToBePlayed();
-  }, [props.status.music, selectedFolder]);
+  }, [props.status.music, selectedFolder, search]);
 
   return html`
     <div
@@ -132,7 +138,7 @@ export default function Folder(props) {
           overflowX: 'hidden',
           overflowY: 'hidden',
         }}>
-          <input type="search" placeholder="Search" value=${search} onInput=${(e) => setSearch(e.target.value)}
+          <input class="search" type="search" placeholder="Search" value=${search} onInput=${(e) => setSearch(e.target.value)}
             style=${{
               width: '95%',
               marginBottom: '1rem',
