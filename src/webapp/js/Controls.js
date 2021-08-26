@@ -9,7 +9,7 @@ export default function Controls(props) {
   const song = props.status.music;
 
   if (song)
-    return html`<div class="allControls" style=${{ display: 'flex' }}>
+    return html`<div class="allControls" style=${{ display: 'flex', flexWrap: 'wrap' }}>
       <div style=${{ display: 'flex' }}>
         <button class="icon controls" onClick=${() => fetch(`${Server}/stop`).then(() => setTimeout(props.getData, 500))}>${square}</button>
         <button
