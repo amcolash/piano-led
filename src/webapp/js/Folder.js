@@ -62,6 +62,10 @@ export default function Folder(props) {
   };
 
   useEffect(focusNowPlaying, [props.status.music, selectedFolder, search]);
+  useEffect(() => {
+    const selectedFolder = sessionStorage.getItem('piano-led-selectedFolder');
+    setSelectedFolder(selectedFolder || musicRoot);
+  }, []);
 
   return html`
     <div
@@ -95,7 +99,10 @@ export default function Folder(props) {
             <select
               class="icon"
               style=${{ position: 'absolute', top: 0, left: 0, color: 'rgba(0,0,0,0)', width: '100%', height: '100%' }}
-              onInput=${(e) => setSelectedFolder(e.target.value)}
+              onInput=${(e) => {
+                setSelectedFolder(e.target.value);
+                sessionStorage.setItem('piano-led-selectedFolder', e.target.value);
+              }}
               value=${selectedFolder}
             >
               ${folders.map((f) => html`<option value=${f}>${folderName(f)}</option>`)}
@@ -125,7 +132,10 @@ export default function Folder(props) {
             <div class="select" style=${{ overflow: 'hidden' }}>
               ${folders.map(
                 (f) =>
-                  html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
+                  html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => {
+                    setSelectedFolder(f);
+                    sessionStorage.setItem('piano-led-selectedFolder', f);
+                  }}>
                     ${folderName(f)}
                   </${Button}>`
               )}
