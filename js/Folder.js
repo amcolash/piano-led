@@ -29,6 +29,25 @@ export default function Folder(props) {
     } else fetch(`${Server}/play?file=${file}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
   };
 
+  const focusNowPlaying = () => {
+    const options = Array.from(document.querySelectorAll('.files .option'));
+    options.forEach((o) => {
+      const f = o.innerText.replace('/ ', '/').replace(' /', '/');
+      const file = f.substring(f.lastIndexOf('/') + 1, f.length);
+
+      if (search.length === 0 && file.trim().toLowerCase() === (props.status.music || '').trim().toLowerCase()) {
+        let focusAfter;
+        if (document.activeElement.className === 'search' || document.activeElement.className === 'focusNowPlaying')
+          focusAfter = document.activeElement;
+
+        o.focus();
+        if (focusAfter) focusAfter.focus();
+      }
+    });
+
+    setToBePlayed();
+  };
+
   const folderName = (f) => {
     return title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'));
   };
@@ -40,23 +59,7 @@ export default function Folder(props) {
       .replace('/', ' / ');
   };
 
-  useEffect(() => {
-    const options = Array.from(document.querySelectorAll('.files .option'));
-    options.forEach((o) => {
-      const f = o.innerText.replace('/ ', '/').replace(' /', '/');
-      const file = f.substring(f.lastIndexOf('/') + 1, f.length);
-
-      if (search.length === 0 && file.trim().toLowerCase() === (props.status.music || '').trim().toLowerCase()) {
-        let focusAfter;
-        if (document.activeElement.className === 'search') focusAfter = document.activeElement;
-
-        o.focus();
-        if (focusAfter) focusAfter.focus();
-      }
-    });
-
-    setToBePlayed();
-  }, [props.status.music, selectedFolder, search]);
+  useEffect(focusNowPlaying, [props.status.music, selectedFolder, search]);
 
   return html`
     <div
@@ -183,7 +186,14 @@ export default function Folder(props) {
             marginBottom: '-1rem',
           }}
         >
-          <div style=${{ fontSize: '1.35rem', color: 'var(--palette2)', marginBottom: '0.5rem' }}>${props.status.music}</div>
+          <${Button}
+            class="focusNowPlaying"
+            style=${{ fontSize: '1.35rem', color: 'var(--palette2)', marginBottom: '0.5rem', cursor: 'pointer' }}
+            tabindex="0"
+            onClick=${focusNowPlaying}
+          >
+            ${props.status.music}
+          </${Button}>
           <${Controls} status=${props.status} getData=${props.getData} />
         </div>`
       }
