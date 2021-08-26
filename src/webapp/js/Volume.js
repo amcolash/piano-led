@@ -1,6 +1,6 @@
 import { html } from 'https://unpkg.com/htm/preact/standalone.module.js';
-import { volume2 } from './icons.js';
 
+import { volume2 } from './icons.js';
 import { Server } from './util.js';
 
 export default function Volume(props) {
@@ -13,7 +13,7 @@ export default function Volume(props) {
       min="0"
       max="16383"
       value=${volume}
-      onChange=${(e) => fetch(`${Server}/volume?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
+      onInput=${(e) => fetch(`${Server}/volume?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
     />
   </div>`;
 }

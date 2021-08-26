@@ -1,10 +1,10 @@
 import { html, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
-import { shuffle, volume2, x } from './icons.js';
 
 import { Button } from './Button.js';
 import Controls from './Controls.js';
 
 import { eventBus } from './eventBus.js';
+import { shuffle, volume2 } from './icons.js';
 import { Server, title } from './util.js';
 
 export default function Folder(props) {
