@@ -4,7 +4,7 @@ import { Button } from './Button.js';
 import Controls from './Controls.js';
 
 import { eventBus } from './eventBus.js';
-import { shuffle, volume2 } from './icons.js';
+import { folder, shuffle, volume2 } from './icons.js';
 import { Server, title } from './util.js';
 
 export default function Folder(props) {
@@ -34,6 +34,7 @@ export default function Folder(props) {
         position: 'absolute',
         padding: '1rem',
         marginTop: '3.5rem',
+        color: 'var(--palette1)',
         background: 'var(--palette3)',
         boxShadow: '0 0 2rem rgba(0,0,0,0.3)',
         overflow: 'hidden',
@@ -42,17 +43,62 @@ export default function Folder(props) {
         flexDirection: 'column',
       }}
     >
-      <div style=${{ display: 'flex', height: '100%', overflow: 'hidden' }}>
-        <div style=${{ width: '30%', marginRight: '0.5rem', position: 'relative' }}>
-          <div class="select" style=${{ overflow: 'hidden' }}>
-            ${folders.map(
-              (f) =>
-                html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
-                  ${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
-                </${Button}>`
-            )}
+      <div class="container" style=${{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+        <div class="folderBar">
+          <!-- Different UI is used based on if the device is mobile / desktop -->
+
+          <!-- Mobile Folder View -->
+          <div class="mobile" style=${{
+            position: 'relative',
+            alignItems: 'center',
+            marginLeft: '0.5rem',
+            marginBottom: '1.25rem',
+            height: '1.75rem',
+          }}>
+            ${folder}
+            <select
+              class="icon"
+              style=${{ position: 'absolute', top: 0, left: 0, color: 'rgba(0,0,0,0)', width: '100%', height: '100%' }}
+              onInput=${(e) => setSelectedFolder(e.target.value)}
+              value=${selectedFolder}
+            >
+              ${folders.map(
+                (f) => html`<option value=${f}>${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}</option>`
+              )}
+            </select>
+            <div class="folderName" style=${{
+              marginLeft: '0.25rem',
+              fontSize: '1.15rem',
+            }}>
+              ${title(selectedFolder.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
+            </div>
+          </div>
+
+          <!-- Desktop Folder View -->
+          <div class="desktop" style=${{ height: '100%' }}>
+            <div class="folderLabel" style=${{
+              display: 'flex',
+              justifyContent: 'flex-begin',
+              height: '1.35rem',
+              marginBottom: '0.75rem',
+              padding: '0.5rem',
+              fontSize: '1.15rem',
+            }}>
+              ${folder}
+              <div>Folders</div>
+            </div>
+
+            <div class="select" style=${{ overflow: 'hidden' }}>
+              ${folders.map(
+                (f) =>
+                  html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
+                    ${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
+                  </${Button}>`
+              )}
+            </div>
           </div>
         </div>
+
         <div class="select" style=${{ width: '100%' }}>
           <${Button}
             class="option"
