@@ -53,21 +53,6 @@ body {
   border-radius: 0.35rem;
 }
 
-@media only screen and (max-width: 600px) {
-  html {
-    font-size: 0.85em;
-  }
-
-  .folderList {
-    width: 88vw;
-    padding: 0.65rem;
-  }
-
-  .allControls {
-    justify-content: space-between;
-  }
-}
-
 select {
   appearance: none;
   padding: 0.25rem;
@@ -77,12 +62,25 @@ option {
   color: black;
 }
 
+.folderBar {
+  width: 30%;
+}
+
+.mobile {
+  display: none;
+}
+
 .folderList {
   width: 85vw;
   height: 80vh;
 
   max-width: 900px;
   max-height: 700px;
+}
+
+.folderList .folderBar svg {
+  height: 100%;
+  margin-right: 0.5rem;
 }
 
 .folderList .select {
@@ -173,4 +171,39 @@ input[type='range']::-webkit-slider-thumb {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: hsl(var(--palette1-h), var(--palette1-s), calc(var(--palette1-l) * 0.85));
+}
+
+@media only screen and (max-width: 600px) {
+  html {
+    font-size: 0.85em;
+  }
+
+  .folderList {
+    width: 88vw;
+    padding: 0.65rem;
+  }
+
+  .folderList .container {
+    flex-direction: column;
+  }
+
+  .folderList .folderBar {
+    width: 100%;
+  }
+
+  .folderList .folderLabel {
+    display: none;
+  }
+
+  .mobile {
+    display: flex;
+  }
+
+  .desktop {
+    display: none;
+  }
+
+  .allControls {
+    justify-content: space-between;
+  }
 }
