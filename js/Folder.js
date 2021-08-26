@@ -23,10 +23,10 @@ export default function Folder(props) {
     if (!props.status.on) {
       eventBus.dispatch('power', {
         complete: () => {
-          fetch(`${Server}/play?file=${file}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
+          fetch(`${Server}/play?${file && `file=${file}`}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
         },
       });
-    } else fetch(`${Server}/play?file=${file}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
+    } else fetch(`${Server}/play?${file && `file=${file}`}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
   };
 
   const focusNowPlaying = () => {
