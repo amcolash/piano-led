@@ -43,6 +43,7 @@ export default function Settings(props) {
         animationDuration: '2500ms',
         animationIterationCount: 'infinite',
         animationTimingFunction: 'linear',
+        opacity: 1,
       }
     : { transform: 'rotate(0deg)' };
 
@@ -59,7 +60,7 @@ export default function Settings(props) {
         <select
           class="icon"
           style=${{ position: 'absolute', top: 0, left: 0, color: 'rgba(0,0,0,0)' }}
-          onChange=${(e) => fetch(`${Server}/palette?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
+          onInput=${(e) => fetch(`${Server}/palette?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
           value=${null}
           disabled=${palettes.length === 0}
         >
@@ -70,13 +71,21 @@ export default function Settings(props) {
         class="icon"
         style=${{
           marginLeft: '0.5rem',
-          filter: props.status.on && !toggling ? 'drop-shadow(0 0 0.35rem var(--palette4)) brightness(1.25)' : undefined,
           cursor: toggling ? 'default' : undefined,
         }}
         onClick=${() => togglePower()}
         disabled=${toggling}
       >
-        <div style=${{ opacity: props.status.on ? 1 : 0.6, ...spinning }}>${toggling ? refreshCw : power}</div>
+        <div
+          style=${{
+            opacity: props.status.on ? 1 : 0.5,
+            filter: props.status.on && !toggling ? 'drop-shadow(0 0 0.4rem var(--palette4)) brightness(1.25)' : undefined,
+            transition: 'all 0.2s',
+            ...spinning,
+          }}
+        >
+          ${toggling ? refreshCw : power}
+        </div>
       </button>
     </div>
   `;

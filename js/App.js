@@ -1,28 +1,25 @@
-import 'https://cdn.skypack.dev/preact/debug';
-
-import { html, render, useState, useEffect } from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { html, render, useCallback, useEffect, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
 
 import Folder from './Folder.js';
 import Settings from './Settings.js';
 
 import { useInterval } from './useInterval.js';
-import { Server } from './util.js';
+import { equal, Server } from './util.js';
 
 function App() {
   const [status, setStatus] = useState({ on: false });
   const [musicData, setMusicData] = useState({ files: {} });
 
-  const getData = () => {
+  const getData = useCallback(() => {
     const res = fetch(`${Server}/status`).then((response) => response.json());
-    res.then((data) => setStatus(data));
+    res.then((data) => {
+      if (!equal(status, data)) setStatus(data);
+    });
 
     return res;
-  };
+  }, [Server, setStatus, status]);
 
-  useEffect(getData, []);
-  useInterval(getData, 7000);
-
-  useEffect(() => {
+  const getMusicData = useCallback(() => {
     fetch(`${Server}/files`)
       .then((response) => response.json())
       .then((data) => {
@@ -35,7 +32,14 @@ function App() {
 
         setMusicData(data);
       });
-  }, []);
+  }, [Server, setMusicData]);
+
+  // Fetch inital data
+  useEffect(getData, []);
+  useEffect(getMusicData, []);
+
+  // Schedule data updates every 7 seconds
+  useInterval(getData, 7000);
 
   return html`
     <div
