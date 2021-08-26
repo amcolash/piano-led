@@ -178,6 +178,14 @@ input[type='range']::-webkit-slider-thumb {
     font-size: 0.85em;
   }
 
+  .settings {
+    width: calc(100% - 2rem);
+  }
+
+  .brightness {
+    margin-right: auto;
+  }
+
   .folderList {
     width: 88vw;
     padding: 0.65rem;
