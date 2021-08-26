@@ -124,7 +124,8 @@ option {
   color: var(--palette2);
 }
 
-input[type='text'] {
+input[type='text'],
+input[type='search'] {
   margin: 0.5rem;
   padding: 0.25rem;
   border: 0.15rem solid var(--palette1);
