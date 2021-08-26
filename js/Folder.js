@@ -30,6 +30,8 @@ export default function Folder(props) {
   };
 
   const focusNowPlaying = () => {
+    document.querySelector('.files .select').scrollTop = 0;
+
     const options = Array.from(document.querySelectorAll('.files .option'));
     options.forEach((o) => {
       const f = o.innerText.replace('/ ', '/').replace(' /', '/');
