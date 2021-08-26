@@ -11,6 +11,12 @@ const buildHandleEnterKeyPress =
   };
 
 export const Button = (props) =>
-  html`<div class=${props.class} onClick=${props.onClick} onKeyPress=${buildHandleEnterKeyPress(props.onClick)} tabindex="0">
+  html`<div
+    class=${props.class}
+    onClick=${props.onClick}
+    onKeyPress=${buildHandleEnterKeyPress(props.onClick)}
+    tabindex="0"
+    style=${{ ...props.style }}
+  >
     ${props.children}
   </div>`;
