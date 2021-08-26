@@ -71,7 +71,7 @@ option {
 }
 
 .folderList {
-  width: 85vw;
+  width: calc(85vw - 2rem);
   height: 80vh;
 
   max-width: 900px;
@@ -122,6 +122,13 @@ option {
   height: 2.5rem;
   width: 2.5rem;
   color: var(--palette2);
+}
+
+input[type='text'] {
+  margin: 0.5rem;
+  padding: 0.25rem;
+  border: 0.15rem solid var(--palette1);
+  border-radius: 0.25rem;
 }
 
 input[type='range'] {
@@ -187,7 +194,7 @@ input[type='range']::-webkit-slider-thumb {
   }
 
   .folderList {
-    width: 88vw;
+    width: calc(88vw - 2rem);
     padding: 0.65rem;
   }
 

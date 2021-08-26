@@ -1,11 +1,11 @@
-import { html, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
+import { html, useEffect, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
 
 import { Button } from './Button.js';
 import Controls from './Controls.js';
 
 import { eventBus } from './eventBus.js';
 import { folder, shuffle, volume2 } from './icons.js';
-import { Server, title } from './util.js';
+import { lev, Server, title } from './util.js';
 
 export default function Folder(props) {
   const musicRoot = props.musicData.musicRoot;
@@ -16,8 +16,10 @@ export default function Folder(props) {
 
   const [selectedFolder, setSelectedFolder] = useState(musicRoot);
   const [toBePlayed, setToBePlayed] = useState();
+  const [search, setSearch] = useState('');
 
   const play = (file, folder) => {
+    setToBePlayed(file);
     if (!props.status.on) {
       eventBus.dispatch('power', {
         complete: () => {
@@ -26,6 +28,29 @@ export default function Folder(props) {
       });
     } else fetch(`${Server}/play?file=${file}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
   };
+
+  const folderName = (f) => {
+    return title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'));
+  };
+
+  const fileName = (f) => {
+    return f
+      .replace(selectedFolder + '/', '')
+      .replace('.mid', '')
+      .replace('/', ' / ');
+  };
+
+  useEffect(() => {
+    const options = Array.from(document.querySelectorAll('.files .option'));
+    options.forEach((o) => {
+      const f = o.innerText.replace('/ ', '/').replace(' /', '/');
+      const file = f.substring(f.lastIndexOf('/') + 1, f.length);
+
+      if (file === props.status.music) o.focus();
+    });
+
+    setToBePlayed();
+  }, [props.status.music]);
 
   return html`
     <div
@@ -62,15 +87,13 @@ export default function Folder(props) {
               onInput=${(e) => setSelectedFolder(e.target.value)}
               value=${selectedFolder}
             >
-              ${folders.map(
-                (f) => html`<option value=${f}>${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}</option>`
-              )}
+              ${folders.map((f) => html`<option value=${f}>${folderName(f)}</option>`)}
             </select>
             <div class="folderName" style=${{
               marginLeft: '0.25rem',
               fontSize: '1.15rem',
             }}>
-              ${title(selectedFolder.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
+              ${folderName(selectedFolder)}
             </div>
           </div>
 
@@ -92,34 +115,44 @@ export default function Folder(props) {
               ${folders.map(
                 (f) =>
                   html`<${Button} class=${`option ${selectedFolder === f ? 'selected' : ''}`} onClick=${(e) => setSelectedFolder(f)}>
-                    ${title(f.replace(musicRoot + '/', '').replace(musicRoot, 'All Music'))}
+                    ${folderName(f)}
                   </${Button}>`
               )}
             </div>
           </div>
         </div>
 
-        <div class="select" style=${{ width: '100%' }}>
-          <${Button}
-            class="option"
-            onClick=${(e) => play(undefined, selectedFolder)}
-          >
-            <div class="optionIcon">${shuffle}</div>
-            <div>Shuffle Folder</div>
-          </${Button}>
-          ${(props.musicData.files[selectedFolder] || []).map((f) => {
-            const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
-            return html`<${Button} class=${`option ${isPlaying || f === toBePlayed ? 'selected' : ''}`} onClick=${(e) =>
-              play(f, selectedFolder)}>
-              ${isPlaying && html`<div class="optionIcon">${volume2}</div>`}
-              <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>
-              ${f
-                .replace(selectedFolder + '/', '')
-                .replace('.mid', '')
-                .replace('/', ' / ')}
-              </div>
-            </${Button}>`;
-          })}
+        <div class="files" style=${{ width: '100%', padding: '0.5rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <input type="search" placeholder="Search" value=${search} onInput=${(e) => setSearch(e.target.value)}
+            style=${{
+              width: '95%',
+              marginBottom: '1rem',
+            }}
+          />
+          <div class="select" style=${{ width: '100%' }}>
+            <${Button}
+              class="option"
+              onClick=${(e) => play(undefined, selectedFolder)}
+            >
+              <div class="optionIcon">${shuffle}</div>
+              <div>Shuffle Folder</div>
+            </${Button}>
+            ${(props.musicData.files[selectedFolder] || []).map((f) => {
+              const fLower = fileName(f.toLowerCase());
+              const sLower = fileName(search.toLowerCase());
+
+              if (search.length > 0 && !(lev(fLower, sLower) < 5 || fLower.indexOf(sLower) !== -1)) return null;
+
+              const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
+              return html`<${Button} class=${`option ${isPlaying || f === toBePlayed ? 'selected' : ''}`} onClick=${(e) =>
+                play(f, selectedFolder)}>
+                ${isPlaying && html`<div class="optionIcon">${volume2}</div>`}
+                <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>
+                  ${fileName(f)}
+                </div>
+              </${Button}>`;
+            })}
+          </div>
         </div>
       </div>
       ${
