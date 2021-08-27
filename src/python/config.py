@@ -58,6 +58,7 @@ class Configuration:
     self.DIRTY = False
     self.SCROLL = None
     self.PENDING_ACTION = PendingAction.NONE
+    self.STOP_MUSIC = False
 
     # LED strip configuration:
     self.LED_COUNT = 148        # Number of LED pixels.
@@ -84,8 +85,6 @@ class Configuration:
     self.MIN_KEY = 28
     self.MAX_KEY = 103
     self.TOTAL_KEYS = self.MAX_KEY - self.MIN_KEY
-
-    ### Restored on restart ###
 
     # Playing Configuration
     self.FADE_SPEED = 5

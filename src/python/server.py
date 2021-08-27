@@ -171,3 +171,4 @@ class Server(BaseHTTPRequestHandler):
     except:
       print(util.niceTime() + ': ' + str(sys.exc_info()))
       self.send_response(500)
+      self.end_headers()

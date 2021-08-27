@@ -26,6 +26,8 @@ class MidiPi:
     self.serverThread = Thread(target=Server.init)
     self.serverThread.start()
 
+    print('Init Complete')
+
   def update(self):
     MidiPorts.update()
     Config.update()

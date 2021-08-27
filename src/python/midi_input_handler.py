@@ -30,6 +30,10 @@ class MidiInputHandler(object):
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
 
+        print('Attempting to close port and stop music')
+        Config.STOP_MUSIC = True
+        self.midi_out_piano.close_port()
+
     # Strip channel from message - all channels will be played
     event = message[0] >> 4
 
