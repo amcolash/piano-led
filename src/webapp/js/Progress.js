@@ -17,7 +17,6 @@ export default function Progress(props) {
 
   // <input type="range" min="0" max="1" step="0.01" disabled value=${progress} style=${{ margin: '0 0.75rem' }} />
   return html`<div class="progress" style=${{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.15rem' }}>
-    <div style=${{ marginTop: '0.1rem' }}>${new Date(progress * props.status.musicDuration * 1000).toISOString().substr(14, 5)}</div>
     <${Button}
       class="controls stop"
       onClick=${() => fetch(`${Server}/stop`).then(() => setTimeout(props.getData, 500))}
@@ -30,6 +29,8 @@ export default function Progress(props) {
     >
       ${skipForward}
     </${Button}>
-    <div style=${{ marginTop: '0.1rem' }}>${new Date(props.status.musicDuration * 1000).toISOString().substr(14, 5)}</div>
+    <div style=${{ marginTop: '0.1rem' }}>${new Date(progress * props.status.musicDuration * 1000)
+    .toISOString()
+    .substr(14, 5)} / ${new Date(props.status.musicDuration * 1000).toISOString().substr(14, 5)}</div>
   </div>`;
 }
