@@ -1,0 +1,35 @@
+import { html, useEffect, useReducer } from 'https://unpkg.com/htm/preact/standalone.module.js';
+
+import { Button } from './Button.js';
+
+import { skipForward, square } from './icons.js';
+import { Server } from './util.js';
+
+export default function Progress(props) {
+  const progress = Math.min(1, (Date.now() / 1000 - props.status.playStart) / props.status.musicDuration);
+
+  // Force updates every half second to make things look nice
+  const [ignored, forceUpdate] = useReducer((x) => x + 1, 0);
+  useEffect(() => {
+    const i = setInterval(forceUpdate, 500);
+    return () => clearInterval(i);
+  }, []);
+
+  // <input type="range" min="0" max="1" step="0.01" disabled value=${progress} style=${{ margin: '0 0.75rem' }} />
+  return html`<div class="progress" style=${{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.15rem' }}>
+    <div style=${{ marginTop: '0.1rem' }}>${new Date(progress * props.status.musicDuration * 1000).toISOString().substr(14, 5)}</div>
+    <${Button}
+      class="controls stop"
+      onClick=${() => fetch(`${Server}/stop`).then(() => setTimeout(props.getData, 500))}
+    >
+      ${square}
+    </${Button}>
+    <${Button}
+      class="controls next"
+      onClick=${() => fetch(`${Server}/next`).then(() => setTimeout(props.getData, 500))}
+    >
+      ${skipForward}
+    </${Button}>
+    <div style=${{ marginTop: '0.1rem' }}>${new Date(props.status.musicDuration * 1000).toISOString().substr(14, 5)}</div>
+  </div>`;
+}
