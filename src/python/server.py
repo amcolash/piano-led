@@ -95,6 +95,8 @@ def status(req):
     'music': song,
     'volume': MidiPorts.currentVolume,
     'palettes': list(map(lambda p: p.name, list(Palette))),
+    'playStart': Music.startTime,
+    'musicDuration': Music.duration,
     # 'playlist': [Music.nowPlaying] + Music.playlist,
   }), "utf-8")
 

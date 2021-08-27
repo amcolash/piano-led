@@ -1,7 +1,10 @@
 import glob
+import jsonpickle
+from mido import MidiFile
 from pathlib import Path
 import random
 import subprocess
+import time
 
 from config import Config
 from menu_item import Icons, MenuItem
@@ -9,12 +12,51 @@ from midi_ports import MidiPorts
 import util
 
 rootPath = str(Path(__file__).parent)
+
+durationFile = Path(rootPath + '/duration.json')
 musicRoot = str(Path(rootPath + '/../../midi').resolve())
 
 class Music:
   nowPlaying = None
   playlist = []
   process = None
+
+  duration = 0
+  startTime = 0
+  durations = {}
+
+  @classmethod
+  def init(cls):
+    print('Init Music Durations: This might take a while...')
+    cls.durations = {}
+
+    # try to load existing durations
+    if durationFile.exists():
+      try:
+        f = open(durationFile, "r")
+        loaded = jsonpickle.decode(f.read())
+
+        for key in loaded:
+          cls.durations[key] = loaded[key]
+      except:
+        print(util.niceTime() + ': ' + str(sys.exc_info()))
+
+    # go through all files, if a duration does not exist, find it
+    files = list(glob.glob(musicRoot + '/**/*.mid', recursive=True))
+    for f in files:
+      if f not in cls.durations:
+        print('Determining length of', f)
+
+        mid = MidiFile(f)
+        duration = mid.length
+        cls.durations[f] = duration
+
+        print(duration)
+
+    # save durations as json
+    encoded = jsonpickle.encode(cls.durations)
+    with open(durationFile, "w") as f:
+      print(encoded, file=f)
 
   @classmethod
   def queue(cls, folder=None, file=None):
@@ -48,6 +90,13 @@ class Music:
       cls.stop(clear)
     else:
       MidiPorts.stopAll()
+
+    cls.startTime = time.time()
+
+    # Note: this won't work on new files, need to restart server to pick up any new durations (since it is slooooow)
+    cls.duration = 0
+    if file in cls.durations:
+      cls.duration = cls.durations[file]
 
     cls.nowPlaying = file
     cls.process = subprocess.Popen(['aplaymidi', '--port=System MIDI In', file],

@@ -17,6 +17,7 @@ from util import niceTime, updatePendingActions
 class MidiPi:
   def __init__(self):
     Config.load()
+    Music.init()
     Leds.init()
     I2C.init()
     Power.init()
