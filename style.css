@@ -128,7 +128,7 @@ body {
 }
 
 .folderList .progress .stop {
-  margin-left: 1.25rem;
+  margin-left: -0.15rem;
 }
 
 .folderList .progress .next {
@@ -277,10 +277,6 @@ input[type='range']::-webkit-slider-thumb {
     border-top: 2px solid var(--palette2);
     opacity: 1;
     overflow: hidden;
-  }
-
-  .folderList .progress .stop {
-    margin-left: 0.75rem;
   }
 
   .folderList .progress .next {
