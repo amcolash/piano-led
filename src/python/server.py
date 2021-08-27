@@ -1,6 +1,7 @@
 import glob
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import os
 from pathlib import Path
 import random
 import sys
@@ -24,6 +25,7 @@ class GetRequest:
 
 GetRequests = {
   '/brightness': GetRequest('/brightness', lambda req: brightness(req)),
+  '/exit': GetRequest('/exit', lambda req: exit(req)),
   '/files': GetRequest('/files', lambda req: files(req)),
   '/next': GetRequest('/next', lambda req: next(req)),
   '/palette': GetRequest('/palette', lambda req: palette(req)),
@@ -45,6 +47,10 @@ def brightness(req):
     return bytes("Setting brightness to " + str(val), "utf-8")
   else:
     return bytes("No brightness specified", "utf-8")
+
+def exit(req):
+  print(util.niceTime() + ': Server Shutdown!')
+  os._exit(1)
 
 def files(req):
   folders = Music.getFolders()

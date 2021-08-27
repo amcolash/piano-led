@@ -37,7 +37,8 @@ class Music:
         loaded = jsonpickle.decode(f.read())
 
         for key in loaded:
-          cls.durations[key] = loaded[key]
+          if Path(key).exists():
+            cls.durations[key] = loaded[key]
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
 

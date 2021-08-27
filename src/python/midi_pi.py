@@ -23,8 +23,8 @@ class MidiPi:
     Power.init()
     self.Display = Display()
 
-    serverThread = Thread(target=Server.init)
-    serverThread.start()
+    self.serverThread = Thread(target=Server.init)
+    self.serverThread.start()
 
   def update(self):
     MidiPorts.update()
@@ -65,4 +65,5 @@ if __name__ == "__main__":
     print(sys.exc_info())
   finally:
     MidiPorts.cleanup()
+    self.serverThread.terminate()
     print('Exit')
