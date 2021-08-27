@@ -16,7 +16,7 @@ export const Button = (props) =>
     onClick=${props.onClick}
     onKeyPress=${buildHandleEnterKeyPress(props.onClick)}
     tabindex="0"
-    style=${{ ...props.style }}
+    style=${{ ...props.style, cursor: 'pointer' }}
   >
     ${props.children}
   </div>`;

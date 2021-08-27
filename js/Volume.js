@@ -11,7 +11,8 @@ export default function Volume(props) {
 
   return html`<div class="volume" style=${{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
     <${Button}
-      style=${{ color: 'var(--palette2)', width: '2.25rem', height: '2.25rem', marginRight: '0.5rem', cursor: 'pointer' }}
+      class="volumeButton"
+      style=${{ color: 'var(--palette2)', marginRight: '0.5rem', cursor: 'pointer' }}
       tabindex="0"
       onClick=${() => {
         let vol = lastVolume;
@@ -29,6 +30,7 @@ export default function Volume(props) {
       type="range"
       min="0"
       max="16383"
+      step="800"
       value=${volume}
       onChange=${(e) => fetch(`${Server}/volume?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
     />

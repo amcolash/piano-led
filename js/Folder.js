@@ -4,7 +4,7 @@ import { Button } from './Button.js';
 import Controls from './Controls.js';
 
 import { eventBus } from './eventBus.js';
-import { folder, shuffle, volume2 } from './icons.js';
+import { chevronDown, chevronUp, folder, shuffle, volume2 } from './icons.js';
 import { lev, Server, title } from './util.js';
 
 export default function Folder(props) {
@@ -17,6 +17,7 @@ export default function Folder(props) {
   const [selectedFolder, setSelectedFolder] = useState(musicRoot);
   const [toBePlayed, setToBePlayed] = useState();
   const [search, setSearch] = useState('');
+  const [playerShown, setPlayerShown] = useState(false);
 
   const play = (file, folder) => {
     setToBePlayed(file);
@@ -30,7 +31,7 @@ export default function Folder(props) {
   };
 
   const focusNowPlaying = () => {
-    document.querySelector('.files .select').scrollTop = 0;
+    let found = false;
 
     const options = Array.from(document.querySelectorAll('.files .option'));
     options.forEach((o) => {
@@ -42,10 +43,15 @@ export default function Folder(props) {
         if (document.activeElement.className === 'search' || document.activeElement.className === 'focusNowPlaying')
           focusAfter = document.activeElement;
 
-        o.focus();
-        if (focusAfter) focusAfter.focus();
+        // o.focus();
+        o.scrollIntoView({ block: 'center' });
+
+        // if (focusAfter) focusAfter.focus();
+        found = true;
       }
     });
+
+    if (!found) document.querySelector('.files .select').scrollTop = 0;
 
     setToBePlayed();
   };
@@ -88,12 +94,13 @@ export default function Folder(props) {
           <!-- Different UI is used based on if the device is mobile / desktop -->
 
           <!-- Mobile Folder View -->
-          <div class="mobile" style=${{
+          <div class="mobile folderLabel" style=${{
             position: 'relative',
             alignItems: 'center',
-            marginLeft: '0.5rem',
-            marginBottom: '1.25rem',
+            marginBottom: '0.75rem',
             height: '1.75rem',
+            padding: '0.5rem',
+            borderRadius: '0.25rem',
           }}>
             ${folder}
             <select
@@ -155,7 +162,7 @@ export default function Folder(props) {
         }}>
           <input class="search" type="search" placeholder="Search" value=${search} onInput=${(e) => setSearch(e.target.value)}
             style=${{
-              width: '95%',
+              width: '100%',
               marginBottom: '1rem',
             }}
           />
@@ -189,23 +196,33 @@ export default function Folder(props) {
         props.status.music &&
         props.status.on &&
         html`<div
+          class="player ${playerShown ? '' : 'hidden'}"
           style=${{
             padding: '1rem',
             width: '100%',
             background: 'var(--palette5)',
+            color: 'var(--palette2)',
             // borderRadius: '0.5rem',
             marginLeft: '-1rem',
             marginBottom: '-1rem',
           }}
         >
-          <${Button}
-            class="focusNowPlaying"
-            style=${{ fontSize: '1.35rem', color: 'var(--palette2)', marginBottom: '0.5rem', cursor: 'pointer' }}
-            tabindex="0"
-            onClick=${focusNowPlaying}
-          >
-            ${props.status.music}
-          </${Button}>
+          <div class="nowPlaying" style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <${Button}
+              class="focusNowPlaying"
+              style=${{ fontSize: '1.35rem' }}
+              onClick=${focusNowPlaying}
+            >
+              ${props.status.music}
+            </${Button}>
+            <${Button}
+              class="toggle"
+              style=${{ height: '2.5rem', marginLeft: '1rem' }}
+              onClick=${() => setPlayerShown(!playerShown)}
+            >
+              ${playerShown ? html`${chevronDown}` : html`${chevronUp}`}
+            </${Button}>
+          </div>
           <${Controls} status=${props.status} getData=${props.getData} />
         </div>`
       }

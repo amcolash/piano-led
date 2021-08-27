@@ -1,8 +1,9 @@
 import { html, useEffect, useState } from 'https://unpkg.com/htm/preact/standalone.module.js';
 import Brightness from './Brightness.js';
+import { Button } from './Button.js';
 
 import { eventBus } from './eventBus.js';
-import { power, refreshCw, sliders } from './icons.js';
+import { alertOctagon, power, refreshCw, sliders } from './icons.js';
 import { Server } from './util.js';
 
 export default function Settings(props) {
@@ -60,6 +61,16 @@ export default function Settings(props) {
       style=${{ position: 'absolute', top: '1rem', right: '1rem', left: '1rem', display: 'flex', justifyContent: 'flex-end' }}
     >
       <${Brightness} status=${props.status} getData=${props.getData} />
+      <${Button}
+        class="icon"
+        onClick=${() => {
+          if (confirm('Are you sure you want to stop server?')) {
+            fetch(`${Server}/exit`).then(() => setTimeout(props.getData, 500));
+          }
+        }}
+      >
+        ${alertOctagon}
+      </${Button}>
       <div class="icon" style=${{ position: 'relative', marginLeft: '0.5rem' }}>
         ${sliders}
         <select
@@ -72,7 +83,7 @@ export default function Settings(props) {
           ${palettes.map((p) => html`<option value=${p}>${p}</option>`)}
         </select>
       </div>
-      <button
+      <${Button}
         class="icon"
         style=${{
           marginLeft: '0.5rem',
@@ -86,12 +97,14 @@ export default function Settings(props) {
             opacity: props.status.on ? 1 : 0.5,
             filter: props.status.on && !toggling ? 'drop-shadow(0 0 0.4rem var(--palette4)) brightness(1.25)' : undefined,
             transition: 'all 0.2s',
+            width: '100%',
+            height: '100%',
             ...spinning,
           }}
         >
           ${toggling ? refreshCw : power}
         </div>
-      </button>
+      </${Button}>
     </div>
   `;
 }

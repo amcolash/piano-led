@@ -201,3 +201,44 @@ export const sun = html`<svg
   <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
 </svg>`;
+
+export const chevronDown = html`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="feather feather-chevron-down"
+>
+  <polyline points="6 9 12 15 18 9"></polyline>
+</svg>`;
+
+export const chevronUp = html`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="feather feather-chevron-up"
+>
+  <polyline points="18 15 12 9 6 15"></polyline>
+</svg>`;
+
+export const alertOctagon = html`<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  class="feather feather-alert-octagon"
+>
+  <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+  <line x1="12" y1="8" x2="12" y2="12"></line>
+  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+</svg>`;
