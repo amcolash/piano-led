@@ -1,3 +1,4 @@
+from threading import Thread
 import time
 
 from config import Config, PlayMode
@@ -37,10 +38,8 @@ class MidiInputHandler(object):
 
       # Forward piano midi messages to leonardo
       if not self.midi_out_piano:
-        try:
-          I2C.bus.write_i2c_block_data(Config.I2C_MIDI_ADDRESS, 0, message)
-        except:
-          if Config.DEBUG_I2C: print(util.niceTime() + ': ' + str(sys.exc_info()))
+        sendMessage = Thread(target=self.sendI2C, args=[message])
+        sendMessage.start()
 
       velocity = message[2]
       is_on = event == 0b1001 and velocity > 0
@@ -98,3 +97,9 @@ class MidiInputHandler(object):
 
           updateLed['target2'] = newColor
           updateLed['playTime'] = Leds.lastPlayed
+
+  def sendI2C(self, message):
+    try:
+      I2C.bus.write_i2c_block_data(Config.I2C_MIDI_ADDRESS, 0, message)
+    except:
+      if Config.DEBUG_I2C: print(util.niceTime() + ': ' + str(sys.exc_info()))
