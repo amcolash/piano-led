@@ -53,8 +53,6 @@ export default function Folder(props) {
         found = true;
       }
     });
-
-    if (!found) document.querySelector('.files .select').scrollTop = 0;
   };
 
   const folderName = (f) => {
@@ -210,7 +208,7 @@ export default function Folder(props) {
           <div class="nowPlaying" style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <${Button}
               class="focusNowPlaying"
-              style=${{ fontSize: '1.35rem' }}
+              style=${{ fontSize: '1.35rem', textAlign: 'left' }}
               onClick=${focusNowPlaying}
             >
               ${props.status.music}
