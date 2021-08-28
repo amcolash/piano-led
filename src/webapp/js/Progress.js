@@ -19,13 +19,19 @@ export default function Progress(props) {
   return html`<div class="progress" style=${{ display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.15rem' }}>
     <${Button}
       class="controls stop"
-      onClick=${() => fetch(`${Server}/stop`).then(() => setTimeout(props.getData, 500))}
+      onClick=${() =>
+        fetch(`${Server}/stop`)
+          .then((response) => response.json())
+          .then(() => props.setStatus({ ...props.status, music: null }))}
     >
       ${square}
     </${Button}>
     <${Button}
       class="controls next"
-      onClick=${() => fetch(`${Server}/next`).then(() => setTimeout(props.getData, 500))}
+      onClick=${() =>
+        fetch(`${Server}/next`)
+          .then((response) => response.json())
+          .then((status) => props.setStatus({ ...props.status, music: status.music }))}
     >
       ${skipForward}
     </${Button}>

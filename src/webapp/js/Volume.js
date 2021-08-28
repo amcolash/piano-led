@@ -21,7 +21,9 @@ export default function Volume(props) {
           vol = 0;
         }
 
-        fetch(`${Server}/volume?value=${vol}`).then(() => setTimeout(props.getData, 500));
+        fetch(`${Server}/volume?value=${vol}`)
+          .then((response) => response.json())
+          .then((status) => props.setStatus({ ...props.status, volume: status.volume }));
       }}
     >
       ${volume === 0 ? volumeX : volume2}
@@ -32,7 +34,10 @@ export default function Volume(props) {
       max="16383"
       step="800"
       value=${volume}
-      onChange=${(e) => fetch(`${Server}/volume?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
+      onChange=${(e) =>
+        fetch(`${Server}/volume?value=${e.target.value}`)
+          .then((response) => response.json())
+          .then((status) => props.setStatus({ ...props.status, volume: status.volume }))}
     />
   </div>`;
 }
