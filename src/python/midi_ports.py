@@ -55,8 +55,7 @@ class MidiPorts:
 
             cls.midi_out_piano.open_port(1)
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
-            cls.currentVolume = 0
-            cls.nextVolume = MAX_VOLUME
+            cls.updateVolume(MAX_VOLUME)
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:
@@ -90,7 +89,7 @@ class MidiPorts:
   @classmethod
   def updateVolume(cls, nextVolume):
     if cls.pianoOn():
-      newVol = int(min(16383, max(0, nextVolume)))
+      newVol = int(min(MAX_VOLUME, max(0, nextVolume)))
 
       # Split into low/high bits of 14 bit value
       low = newVol & 0x7B
