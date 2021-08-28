@@ -13,7 +13,10 @@ export default function Brightness(props) {
       min="0"
       max="20"
       value=${brightness}
-      onChange=${(e) => fetch(`${Server}/brightness?value=${e.target.value}`).then(() => setTimeout(props.getData, 500))}
+      onChange=${(e) =>
+        fetch(`${Server}/brightness?value=${e.target.value}`)
+          .then((response) => response.json())
+          .then((status) => props.setStatus({ ...props.status, brightness: status.brightness }))}
     />
   </div>`;
 }

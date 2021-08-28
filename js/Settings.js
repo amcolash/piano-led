@@ -60,7 +60,7 @@ export default function Settings(props) {
       class="settings"
       style=${{ position: 'absolute', top: '1rem', right: '1rem', left: '1rem', display: 'flex', justifyContent: 'flex-end' }}
     >
-      <${Brightness} status=${props.status} getData=${props.getData} />
+      <${Brightness} status=${props.status} setStatus=${props.setStatus} />
       <${Button}
         class="icon"
         onClick=${() => {
