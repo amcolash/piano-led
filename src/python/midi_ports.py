@@ -1,6 +1,7 @@
 import rtmidi
 from rtmidi.midiconstants import (ALL_SOUND_OFF, CONTROL_CHANGE, END_OF_EXCLUSIVE, RESET_ALL_CONTROLLERS, SYSTEM_EXCLUSIVE)
 import sys
+from threading import Lock
 import time
 
 from config import Config
@@ -15,17 +16,15 @@ MAX_VOLUME = 16383
 class MidiPorts:
   midiCount = 100
   currentVolume = 0
-  nextVolume = 0
 
   midi_in_piano = rtmidi.MidiIn()
   midi_in_system = rtmidi.MidiIn()
   midi_out_piano = rtmidi.MidiOut()
 
+  midi_lock = Lock()
+
   @classmethod
   def update(cls):
-    # If the volume needs to be updated
-    cls.updateVolume()
-
     if cls.midiCount > 0:
       cls.midiCount -= 1
     else:
@@ -34,7 +33,7 @@ class MidiPorts:
 
         if not cls.midi_in_system.is_port_open():
           port_name = cls.midi_in_system.open_port(0)
-          cls.midi_in_system.set_callback(MidiInputHandler(port_name, cls.midi_out_piano))
+          cls.midi_in_system.set_callback(MidiInputHandler(port_name, cls.midi_out_piano, cls.midi_lock))
           cls.midi_in_system.set_client_name('System MIDI In')
 
         ports = cls.midi_in_piano.get_ports()
@@ -51,7 +50,7 @@ class MidiPorts:
           if not cls.midi_in_piano.is_port_open():
             if Config.DEBUG_MIDI: print('Init MIDI')
             port_name = cls.midi_in_piano.open_port(1)
-            cls.midi_in_piano.set_callback(MidiInputHandler(port_name, None))
+            cls.midi_in_piano.set_callback(MidiInputHandler(port_name, None, None))
             cls.midi_in_piano.set_client_name('Piano MIDI In')
 
             cls.midi_out_piano.open_port(1)
@@ -72,9 +71,13 @@ class MidiPorts:
     if cls.pianoOn():
 
       try:
+        cls.midi_lock.acquire()
+
         # Send MIDI reset message
         cls.midi_out_piano.send_message([CONTROL_CHANGE, ALL_SOUND_OFF, 0])
         cls.midi_out_piano.send_message([CONTROL_CHANGE, RESET_ALL_CONTROLLERS, 0])
+
+        cls.midi_lock.release()
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
 
@@ -85,9 +88,9 @@ class MidiPorts:
     time.sleep(0.005)
 
   @classmethod
-  def updateVolume(cls):
-    if cls.nextVolume != cls.currentVolume and cls.pianoOn():
-      newVol = int(min(16383, max(0, cls.nextVolume)))
+  def updateVolume(cls, nextVolume):
+    if cls.pianoOn():
+      newVol = int(min(16383, max(0, nextVolume)))
 
       # Split into low/high bits of 14 bit value
       low = newVol & 0x7B
@@ -95,7 +98,9 @@ class MidiPorts:
 
       # Send master MIDI device volume message based off of: https://www.recordingblogs.com/wiki/midi-master-volume-message
       try:
+        cls.midi_lock.acquire()
         cls.midi_out_piano.send_message([SYSTEM_EXCLUSIVE, 0x7F, 0x7F, 0x04, 0x01, low, high, END_OF_EXCLUSIVE])
+        cls.midi_lock.release()
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
 
