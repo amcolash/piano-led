@@ -60,9 +60,10 @@ export default function Settings(props) {
       class="settings"
       style=${{ position: 'absolute', top: '1rem', right: '1rem', left: '1rem', display: 'flex', justifyContent: 'flex-end' }}
     >
-      <${Brightness} status=${props.status} getData=${props.getData} />
+      <${Brightness} status=${props.status} setStatus=${props.setStatus} />
       <${Button}
         class="icon"
+        style=${{ opacity: 0.3 }}
         onClick=${() => {
           if (confirm('Are you sure you want to stop server?')) {
             fetch(`${Server}/exit`).then(() => setTimeout(props.getData, 500));

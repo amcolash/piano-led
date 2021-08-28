@@ -15,19 +15,22 @@ export default function Folder(props) {
   });
 
   const [selectedFolder, setSelectedFolder] = useState(musicRoot);
-  const [toBePlayed, setToBePlayed] = useState();
   const [search, setSearch] = useState('');
   const [playerShown, setPlayerShown] = useState(false);
 
   const play = (file, folder) => {
-    setToBePlayed(file);
     if (!props.status.on) {
       eventBus.dispatch('power', {
         complete: () => {
-          fetch(`${Server}/play?${file && `file=${file}`}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
+          fetch(`${Server}/play?${file && `file=${file}`}&folder=${folder}`)
+            .then((response) => response.json())
+            .then((status) => props.setStatus({ ...props.status, music: status.music }));
         },
       });
-    } else fetch(`${Server}/play?${file && `file=${file}`}&folder=${folder}`).then(() => setTimeout(props.getData, 500));
+    } else
+      fetch(`${Server}/play?${file && `file=${file}`}&folder=${folder}`)
+        .then((response) => response.json())
+        .then((status) => props.setStatus({ ...props.status, music: status.music }));
   };
 
   const focusNowPlaying = () => {
@@ -50,10 +53,6 @@ export default function Folder(props) {
         found = true;
       }
     });
-
-    if (!found) document.querySelector('.files .select').scrollTop = 0;
-
-    setToBePlayed();
   };
 
   const folderName = (f) => {
@@ -181,8 +180,7 @@ export default function Folder(props) {
               if (search.length > 0 && !(lev(fLower, sLower) < 5 || fLower.indexOf(sLower) !== -1)) return null;
 
               const isPlaying = props.status.music && f.toLowerCase().indexOf(props.status.music.toLowerCase()) !== -1;
-              return html`<${Button} class=${`option ${isPlaying || f === toBePlayed ? 'selected' : ''}`} onClick=${(e) =>
-                play(f, selectedFolder)}>
+              return html`<${Button} class=${`option ${isPlaying ? 'selected' : ''}`} onClick=${(e) => play(f, selectedFolder)}>
                 ${isPlaying && html`<div class="optionIcon">${volume2}</div>`}
                 <div style=${{ marginLeft: !isPlaying ? '2.5rem' : undefined }}>
                   ${fileName(f)}
@@ -210,7 +208,7 @@ export default function Folder(props) {
           <div class="nowPlaying" style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <${Button}
               class="focusNowPlaying"
-              style=${{ fontSize: '1.35rem' }}
+              style=${{ fontSize: '1.35rem', textAlign: 'left' }}
               onClick=${focusNowPlaying}
             >
               ${props.status.music}
@@ -223,7 +221,7 @@ export default function Folder(props) {
               ${playerShown ? html`${chevronDown}` : html`${chevronUp}`}
             </${Button}>
           </div>
-          <${Controls} status=${props.status} getData=${props.getData} />
+          <${Controls} status=${props.status} getData=${props.getData} setStatus=${props.setStatus} />
         </div>`
       }
     </div>

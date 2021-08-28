@@ -58,11 +58,11 @@ function App() {
     >
       <div style=${{ padding: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
         <div className="settingsContainer" style=${{ maxWidth: 1200, position: 'absolute', top: 0, width: '100%' }}>
-          <${Settings} status=${status} getData=${getData} />
+          <${Settings} status=${status} getData=${getData} setStatus=${setStatus} />
         </div>
         ${!musicData.musicRoot || !status.palettes
           ? html`<div>Loading...</div>`
-          : html`<${Folder} musicData=${musicData} status=${status} getData=${getData} />`}
+          : html`<${Folder} musicData=${musicData} status=${status} getData=${getData} setStatus=${setStatus} />`}
       </div>
     </div>
   `;
