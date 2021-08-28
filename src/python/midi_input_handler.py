@@ -9,10 +9,11 @@ from palettes import Palettes
 import util
 
 class MidiInputHandler(object):
-  def __init__(self, port, midi_out_piano):
+  def __init__(self, port, midi_out_piano, midi_lock):
     self.port = port
     self.wallclock = time.time()
     self.midi_out_piano = midi_out_piano
+    self.midi_lock = midi_lock
     self.colorIndex = 0
 
   def __call__(self, event, data=None):
@@ -26,7 +27,9 @@ class MidiInputHandler(object):
     # If we want to forward midi to piano and got an event
     if self.midi_out_piano and self.midi_out_piano.is_port_open():
       try:
+        self.midi_lock.acquire()
         self.midi_out_piano.send_message(message)
+        self.midi_lock.release()
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
 

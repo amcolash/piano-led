@@ -44,9 +44,9 @@ def brightness(req):
     val = max(0, min(20, int(query['value'][0])))
     Config.updateValue('MAX_AMBIENT_BRIGHTNESS', val)
 
-    return bytes("Setting brightness to " + str(val), "utf-8")
+    return status(req, "Setting brightness to " + str(val))
   else:
-    return bytes("No brightness specified", "utf-8")
+    return status(req, "No brightness specified")
 
 def exit(req):
   print(util.niceTime() + ': Server Shutdown!')
@@ -64,8 +64,10 @@ def files(req):
   return bytes(json.dumps({ 'files': files, 'musicRoot': musicRoot }), "utf-8")
 
 def next(req):
+  if len(Music.playlist) > 0: song = Path(Music.playlist[0]).stem
   Music.stop(clear=False)
-  return bytes("Skipping to next song", "utf-8")
+
+  return status(req, "Skipping to next song", song)
 
 def palette(req):
   query = parse_qs(req.query)
@@ -73,9 +75,9 @@ def palette(req):
   if 'value' in query:
     p = query['value'][0]
     Config.updatePalette(getattr(Palette, p))
-    return bytes("Changing palette to: " + str(p), "utf-8")
+    return status(req, "Changing palette to: " + str(p))
   else:
-    return bytes("No palette selected", "utf-8")
+    return status(req, "No palette selected")
 
 def play(req):
   folder = musicRoot
@@ -90,40 +92,42 @@ def play(req):
 
   Music.queue(folder, file)
 
-  return bytes("Starting music: " + str(file) + ', ' + str(folder), "utf-8")
+  return status(req, "Starting music: " + str(file) + ', ' + str(folder), Path(file).stem)
 
-def status(req):
-  song = Path(Music.nowPlaying or '').stem if Music.nowPlaying != None else None
+def status(req, message=None, song=None):
+  currentSong = song
+  if song == None: currentSong = Path(Music.nowPlaying or '').stem if Music.nowPlaying != None else None
 
   return bytes(json.dumps({
     'on': MidiPorts.pianoOn(),
     'brightness': Config.MAX_AMBIENT_BRIGHTNESS,
-    'music': song,
+    'music': currentSong,
     'volume': MidiPorts.currentVolume,
     'palettes': list(map(lambda p: p.name, list(Palette))),
     'playStart': Music.startTime,
     'musicDuration': Music.duration,
+    'message': message,
     # 'playlist': [Music.nowPlaying] + Music.playlist,
   }), "utf-8")
 
 def power(req):
   Power.toggle()
-  return bytes("Toggling power", "utf-8")
+  return status(req, "Toggling power")
 
 def stop(req):
   Music.stop()
-  return bytes("Stopping music", "utf-8")
+  return status(req, "Stopping music")
 
 def volume(req):
   query = parse_qs(req.query)
 
   if 'value' in query:
     vol = int(query['value'][0])
-    MidiPorts.nextVolume = vol
+    MidiPorts.updateVolume(vol)
 
-    return bytes("Setting volume to " + str(vol), "utf-8")
+    return status(req, "Setting volume to " + str(vol))
   else:
-    return bytes("No volume specified", "utf-8")
+    return status(req, "No volume specified")
 
 def other(req):
   return [
