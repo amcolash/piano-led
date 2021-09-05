@@ -257,6 +257,11 @@ input[type='range']::-webkit-slider-thumb {
     margin-bottom: 0.75rem;
   }
 
+  .folderList .searchWrap {
+    border-bottom: 2px solid var(--palette1);
+    margin-bottom: 1rem;
+  }
+
   .player.hidden .nowPlaying {
     margin-bottom: 0;
   }

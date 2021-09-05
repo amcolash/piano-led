@@ -96,7 +96,7 @@ export default function Folder(props) {
           <div class="mobile folderLabel" style=${{
             position: 'relative',
             alignItems: 'center',
-            marginBottom: '0.75rem',
+            marginBottom: '0.25rem',
             height: '1.75rem',
             padding: '0.5rem',
             borderRadius: '0.25rem',
@@ -159,12 +159,12 @@ export default function Folder(props) {
           overflowX: 'hidden',
           overflowY: 'hidden',
         }}>
+          <div class="searchWrap" style=${{ display: 'flex', width: '100%' }}>
           <input class="search" type="search" placeholder="Search" value=${search} onInput=${(e) => setSearch(e.target.value)}
-            style=${{
-              width: '100%',
-              marginBottom: '1rem',
-            }}
+            style=${{ width: '100%', marginBottom: '1rem' }}
           />
+        </div>
+
           <div class="select" style=${{ width: '100%' }}>
             <${Button}
               class="option"
