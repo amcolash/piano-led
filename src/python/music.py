@@ -13,7 +13,7 @@ import util
 
 rootPath = str(Path(__file__).parent)
 
-durationFile = Path(rootPath + '/duration.json')
+metadataFile = Path(rootPath + '/metadata.json')
 musicRoot = str(Path(rootPath + '/../../midi').resolve())
 
 class Music:
@@ -23,41 +23,101 @@ class Music:
 
   duration = 0
   startTime = 0
-  durations = {}
+  avgVelocity = 0
+
+  metadata = {}
+  metadata['durations'] = {}
+  metadata['veolicites'] = {}
+
 
   @classmethod
   def init(cls):
-    print('Init Music Durations: This might take a while...')
-    cls.durations = {}
+    cls.loadMetadata()
+    cls.initMidiMetadata()
+    cls.saveMetadata()
 
-    # try to load existing durations
-    if durationFile.exists():
+  @classmethod
+  def loadMetadata(cls):
+    # try to load existing metadata
+    if metadataFile.exists():
       try:
-        f = open(durationFile, "r")
+        f = open(metadataFile, "r")
         loaded = jsonpickle.decode(f.read())
 
-        for key in loaded:
+        for key in loaded.metadata['durations']:
           if Path(key).exists():
-            cls.durations[key] = loaded[key]
+            cls.metadata['durations'][key] = loaded.metadata['durations'][key]
+
+        for key in loaded.metadata['velocities']:
+          if Path(key).exists():
+            cls.metadata['velocities'][key] = loaded.metadata['velocities'][key]
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
+
+  @classmethod
+  def saveMetadata(cls):
+    # save durations as json
+    encoded = jsonpickle.encode(cls.metadata)
+    with open(metadataFile, "w") as f:
+      print(encoded, file=f)
+
+  @classmethod
+  def initMidiMetadata(cls):
+    print('Init Music Metadata: This might take a while...')
+
+    file_avg = 0
+    i = 1
 
     # go through all files, if a duration does not exist, find it
     files = list(glob.glob(musicRoot + '/**/*.mid', recursive=True))
     for f in files:
-      if f not in cls.durations:
-        print('Determining length of', f)
+      if f not in cls.metadata['durations']:
+        print('Getting metadata for', f)
 
         mid = MidiFile(f)
+
         duration = mid.length
-        cls.durations[f] = duration
+        cls.metadata['durations'][f] = duration
 
-        print(duration)
+        avg = getMidiVelocity(mid)
+        cls.metadata['velocities'][f] = avg
 
-    # save durations as json
-    encoded = jsonpickle.encode(cls.durations)
-    with open(durationFile, "w") as f:
-      print(encoded, file=f)
+        print('Duration: ', duration, 'Velocity: ', avg)
+
+      avg = cls.metadata['velocities'][f]
+      file_avg = (file_avg * (i - 1) + avg) / i
+      i += 1
+
+    print('Average Velocity: ', file_avg)
+    cls.avgVelocity = file_avg
+
+  @classmethod
+  def getMidiVelocity(cls, mid):
+    vels = {}
+    total_avg = 0
+    i = 1
+
+    for track in mid.tracks:
+      avg_vel = 0
+      j = 0
+
+      for msg in track:
+        if msg.type == 'note_on':
+          vel = msg.velocity
+          if vel > 0:
+            j += 1
+            avg_vel = (avg_vel * (j - 1) + vel) / j
+
+      if avg_vel > 0:
+        name = track.name or 'Piano'
+
+        if name in vels: vels[name + ' '] = avg_vel
+        else: vels[name] = avg_vel
+
+        total_avg = (total_avg * (i - 1) + avg_vel) / i
+        i += 1
+
+    return total_avg
 
   @classmethod
   def queue(cls, folder=None, file=None):
@@ -96,8 +156,8 @@ class Music:
 
     # Note: this won't work on new files, need to restart server to pick up any new durations (since it is slooooow)
     cls.duration = 0
-    if file in cls.durations:
-      cls.duration = cls.durations[file]
+    if file in cls.metadata['durations']:
+      cls.duration = cls.metadata['durations'][file]
 
     cls.nowPlaying = file
     cls.process = subprocess.Popen(['aplaymidi', '--port=System MIDI In', file],

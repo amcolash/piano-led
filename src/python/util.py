@@ -1,5 +1,6 @@
 import datetime
 from enum import Enum
+import io
 from pathlib import Path
 from subprocess import call
 import sys
@@ -33,3 +34,10 @@ def updatePendingActions(Disp):
       call(scriptRoot + "/restart.sh reboot now", shell=True)
 
     sys.exit(0)
+
+def is_raspberrypi():
+  try:
+    with io.open('/sys/firmware/devicetree/base/model', 'r') as m:
+      if 'raspberry pi' in m.read().lower(): return True
+  except Exception: pass
+  return False

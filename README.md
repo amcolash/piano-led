@@ -4,11 +4,11 @@ LEDs for my piano!
 
 ## Requirements - so far
 
-- mido
-- rtmidi
-- smbus2
+- adafruit_ssd1306
 - jsonpickle
+- mido
+- python-rtmidi
 - pytz
 - RPi.GPIO
 - rpi_ws281x
-- adafruit_ssd1306
+- smbus2

@@ -67,5 +67,5 @@ if __name__ == "__main__":
     print(sys.exc_info())
   finally:
     MidiPorts.cleanup()
-    self.serverThread.terminate()
+    midiPi.serverThread.terminate()
     print('Exit')
