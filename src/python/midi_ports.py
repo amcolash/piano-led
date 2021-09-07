@@ -15,7 +15,8 @@ MAX_VOLUME = 16383
 
 class MidiPorts:
   midiCount = 100
-  currentVolume = 0
+  userVolume = 0
+  musicVolume = 0
 
   midi_in_piano = rtmidi.MidiIn()
   midi_in_system = rtmidi.MidiIn()
@@ -55,7 +56,7 @@ class MidiPorts:
 
             cls.midi_out_piano.open_port(1)
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
-            cls.updateVolume(MAX_VOLUME)
+            cls.updateVolume(1, 1)
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:
@@ -87,9 +88,9 @@ class MidiPorts:
     time.sleep(0.005)
 
   @classmethod
-  def updateVolume(cls, nextVolume):
+  def updateVolume(cls, userVolume, musicVolume):
     if cls.pianoOn():
-      newVol = int(min(MAX_VOLUME, max(0, nextVolume)))
+      newVol = int(min(MAX_VOLUME, max(0, userVolume * musicVolume * MAX_VOLUME)))
 
       # Split into low/high bits of 14 bit value
       low = newVol & 0x7B
@@ -103,7 +104,8 @@ class MidiPorts:
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
 
-      cls.currentVolume = newVol
+      cls.userVolume = userVolume
+      cls.musicVolume = musicVolume
 
   @classmethod
   def cleanup(cls):

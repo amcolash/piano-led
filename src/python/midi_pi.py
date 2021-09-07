@@ -24,6 +24,7 @@ class MidiPi:
     self.Display = Display()
 
     self.serverThread = Thread(target=Server.init)
+    self.serverThread.daemon = True
     self.serverThread.start()
 
     print('Init Complete')
@@ -67,5 +68,5 @@ if __name__ == "__main__":
     print(sys.exc_info())
   finally:
     MidiPorts.cleanup()
-    midiPi.serverThread.terminate()
+    Server.running = False
     print('Exit')

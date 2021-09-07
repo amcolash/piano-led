@@ -27,8 +27,9 @@ class Leds:
 
   @classmethod
   def clearLeds(cls):
-    for l in range(Config.LED_COUNT):
-      cls.leds[l]['state'] = []
+    if len(cls.leds) == Config.LED_COUNT:
+      for l in range(Config.LED_COUNT):
+        cls.leds[l]['state'] = []
 
   @classmethod
   def updateLeds(cls):

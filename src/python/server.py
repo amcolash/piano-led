@@ -92,17 +92,18 @@ def play(req):
 
   Music.queue(folder, file)
 
-  return status(req, "Starting music: " + str(file) + ', ' + str(folder), Path(file).stem)
+  return status(req, "Starting music: " + str(file or '') + ', ' + str(folder or ''), Path(file).stem if file != None else None)
 
 def status(req, message=None, song=None):
   currentSong = song
-  if song == None: currentSong = Path(Music.nowPlaying or '').stem if Music.nowPlaying != None else None
+  if currentSong == None and Music.nowPlaying != None: currentSong = Path(Music.nowPlaying).stem
+  if currentSong == None and len(Music.playlist) > 0: currentSong = Path(Music.playlist[0]).stem
 
   return bytes(json.dumps({
     'on': MidiPorts.pianoOn(),
     'brightness': Config.MAX_AMBIENT_BRIGHTNESS,
     'music': currentSong,
-    'volume': MidiPorts.currentVolume,
+    'volume': MidiPorts.userVolume,
     'palettes': list(map(lambda p: p.name, list(Palette))),
     'playStart': Music.startTime,
     'musicDuration': Music.duration,
@@ -122,8 +123,8 @@ def volume(req):
   query = parse_qs(req.query)
 
   if 'value' in query:
-    vol = int(query['value'][0])
-    MidiPorts.updateVolume(vol)
+    vol = float(query['value'][0])
+    MidiPorts.updateVolume(vol, MidiPorts.musicVolume)
 
     return status(req, "Setting volume to " + str(vol))
   else:
@@ -140,6 +141,7 @@ def other(req):
 
 class Server(BaseHTTPRequestHandler):
   webserver = None
+  running = True
 
   @classmethod
   def init(cls):
@@ -147,7 +149,8 @@ class Server(BaseHTTPRequestHandler):
     print("Server started http://%s:%s" % (hostName, Config.PORT))
 
     try:
-      cls.webServer.serve_forever()
+      while cls.running:
+        cls.webServer.handle_request()
     except:
       print(util.niceTime() + ': ' + str(sys.exc_info()))
 
