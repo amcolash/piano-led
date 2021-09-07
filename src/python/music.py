@@ -4,6 +4,7 @@ from mido import MidiFile
 from pathlib import Path
 import random
 import subprocess
+import sys
 import time
 
 from config import Config
@@ -23,11 +24,11 @@ class Music:
 
   duration = 0
   startTime = 0
-  avgVelocity = 0
+  avgVelocity = 1
 
   metadata = {}
   metadata['durations'] = {}
-  metadata['veolicites'] = {}
+  metadata['velocities'] = {}
 
 
   @classmethod
@@ -44,13 +45,13 @@ class Music:
         f = open(metadataFile, "r")
         loaded = jsonpickle.decode(f.read())
 
-        for key in loaded.metadata['durations']:
+        for key in loaded['durations']:
           if Path(key).exists():
-            cls.metadata['durations'][key] = loaded.metadata['durations'][key]
+            cls.metadata['durations'][key] = loaded['durations'][key]
 
-        for key in loaded.metadata['velocities']:
+        for key in loaded['velocities']:
           if Path(key).exists():
-            cls.metadata['velocities'][key] = loaded.metadata['velocities'][key]
+            cls.metadata['velocities'][key] = loaded['velocities'][key]
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))
 
@@ -66,36 +67,43 @@ class Music:
     print('Init Music Metadata: This might take a while...')
 
     file_avg = 0
-    i = 1
+    i = 0
 
     # go through all files, if a duration does not exist, find it
     files = list(glob.glob(musicRoot + '/**/*.mid', recursive=True))
     for f in files:
-      if f not in cls.metadata['durations']:
+      if f not in cls.metadata['durations'] or f not in cls.metadata['velocities']:
         print('Getting metadata for', f)
 
-        mid = MidiFile(f)
+        try:
+          mid = MidiFile(f)
 
-        duration = mid.length
-        cls.metadata['durations'][f] = duration
+          duration = mid.length
+          cls.metadata['durations'][f] = duration
 
-        avg = getMidiVelocity(mid)
-        cls.metadata['velocities'][f] = avg
+          avg = cls.getMidiVelocity(mid)
+          cls.metadata['velocities'][f] = avg
 
-        print('Duration: ', duration, 'Velocity: ', avg)
+          print('Duration: ', duration, 'Velocity: ', avg)
+
+          # Always save to keep progress moving on restarts
+          cls.saveMetadata()
+        except:
+          print(util.niceTime() + ': ' + str(sys.exc_info()))
 
       avg = cls.metadata['velocities'][f]
-      file_avg = (file_avg * (i - 1) + avg) / i
+
       i += 1
+      file_avg = (file_avg * (i - 1) + avg) / i
 
     print('Average Velocity: ', file_avg)
-    cls.avgVelocity = file_avg
+    cls.avgVelocity = max(1, file_avg) # prevent div by 0, just in case
 
   @classmethod
   def getMidiVelocity(cls, mid):
     vels = {}
     total_avg = 0
-    i = 1
+    i = 0
 
     for track in mid.tracks:
       avg_vel = 0
@@ -114,8 +122,8 @@ class Music:
         if name in vels: vels[name + ' '] = avg_vel
         else: vels[name] = avg_vel
 
-        total_avg = (total_avg * (i - 1) + avg_vel) / i
         i += 1
+        total_avg = (total_avg * (i - 1) + avg_vel) / i
 
     return total_avg
 
@@ -154,10 +162,19 @@ class Music:
 
     cls.startTime = time.time()
 
-    # Note: this won't work on new files, need to restart server to pick up any new durations (since it is slooooow)
+    # attempt to get new metadata for new files, may not always work...
+    if file not in cls.metadata['durations'] or file not in cls.metadata['velocities']:
+      cls.initMidiMetadata()
+
     cls.duration = 0
     if file in cls.metadata['durations']:
       cls.duration = cls.metadata['durations'][file]
+
+    playVol = 1
+    if file in cls.metadata['velocities']:
+      playVol = (1 / (cls.metadata['velocities'][file] / cls.avgVelocity)) / 1.35
+
+    MidiPorts.updateVolume(MidiPorts.userVolume, playVol)
 
     cls.nowPlaying = file
     cls.process = subprocess.Popen(['aplaymidi', '--port=System MIDI In', file],

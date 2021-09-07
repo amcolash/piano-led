@@ -102,7 +102,7 @@ def status(req, message=None, song=None):
     'on': MidiPorts.pianoOn(),
     'brightness': Config.MAX_AMBIENT_BRIGHTNESS,
     'music': currentSong,
-    'volume': MidiPorts.currentVolume,
+    'volume': MidiPorts.userVolume,
     'palettes': list(map(lambda p: p.name, list(Palette))),
     'playStart': Music.startTime,
     'musicDuration': Music.duration,
@@ -122,8 +122,8 @@ def volume(req):
   query = parse_qs(req.query)
 
   if 'value' in query:
-    vol = int(query['value'][0])
-    MidiPorts.updateVolume(vol)
+    vol = float(query['value'][0])
+    MidiPorts.updateVolume(vol, MidiPorts.musicVolume)
 
     return status(req, "Setting volume to " + str(vol))
   else:
@@ -140,6 +140,7 @@ def other(req):
 
 class Server(BaseHTTPRequestHandler):
   webserver = None
+  running = True
 
   @classmethod
   def init(cls):
@@ -147,7 +148,8 @@ class Server(BaseHTTPRequestHandler):
     print("Server started http://%s:%s" % (hostName, Config.PORT))
 
     try:
-      cls.webServer.serve_forever()
+      while cls.running:
+        cls.webServer.handle_request()
     except:
       print(util.niceTime() + ': ' + str(sys.exc_info()))
 
