@@ -31,8 +31,8 @@ export default function Volume(props) {
     <input
       type="range"
       min="0"
-      max="16383"
-      step="800"
+      max="1"
+      step="0.05"
       value=${volume}
       onChange=${(e) =>
         fetch(`${Server}/volume?value=${e.target.value}`)
