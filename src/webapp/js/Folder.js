@@ -34,23 +34,14 @@ export default function Folder(props) {
   };
 
   const focusNowPlaying = () => {
-    let found = false;
-
     const options = Array.from(document.querySelectorAll('.files .option'));
     options.forEach((o) => {
       const f = o.innerText.replace('/ ', '/').replace(' /', '/');
       const file = f.substring(f.lastIndexOf('/') + 1, f.length);
 
       if (search.length === 0 && file.trim().toLowerCase() === (props.status.music || '').trim().toLowerCase()) {
-        let focusAfter;
-        if (document.activeElement.className === 'search' || document.activeElement.className === 'focusNowPlaying')
-          focusAfter = document.activeElement;
-
-        // o.focus();
         o.scrollIntoView({ block: 'center' });
-
-        // if (focusAfter) focusAfter.focus();
-        found = true;
+        document.querySelector('.container').scrollTop = 0;
       }
     });
   };
