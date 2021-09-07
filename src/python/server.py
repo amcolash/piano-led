@@ -92,11 +92,12 @@ def play(req):
 
   Music.queue(folder, file)
 
-  return status(req, "Starting music: " + str(file) + ', ' + str(folder), Path(file).stem)
+  return status(req, "Starting music: " + str(file or '') + ', ' + str(folder or ''), Path(file).stem if file != None else None)
 
 def status(req, message=None, song=None):
   currentSong = song
-  if song == None: currentSong = Path(Music.nowPlaying or '').stem if Music.nowPlaying != None else None
+  if currentSong == None and Music.nowPlaying != None: currentSong = Path(Music.nowPlaying).stem
+  if currentSong == None and len(Music.playlist) > 0: currentSong = Path(Music.playlist[0]).stem
 
   return bytes(json.dumps({
     'on': MidiPorts.pianoOn(),

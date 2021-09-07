@@ -173,6 +173,7 @@ class Music:
     playVol = 1
     if file in cls.metadata['velocities']:
       playVol = (1 / (cls.metadata['velocities'][file] / cls.avgVelocity)) / 1.35
+      print('Average Vel: ', cls.avgVelocity, 'File Vel: ', cls.metadata['velocities'][file], 'Play Vol: ', playVol)
 
     MidiPorts.updateVolume(MidiPorts.userVolume, playVol)
 
