@@ -12,9 +12,13 @@ function App() {
 
   const getData = useCallback(() => {
     const res = fetch(`${Server}/status`).then((response) => response.json());
-    res.then((data) => {
-      if (!equal(status, data)) setStatus(data);
-    });
+    res
+      .then((data) => {
+        if (!equal(status, data)) setStatus(data);
+      })
+      .catch((e) => {
+        setStatus({ error: true });
+      });
 
     return res;
   }, [Server, setStatus, status]);
@@ -60,7 +64,9 @@ function App() {
         <div className="settingsContainer" style=${{ maxWidth: 1200, position: 'absolute', top: 0, width: '100%' }}>
           <${Settings} status=${status} getData=${getData} setStatus=${setStatus} />
         </div>
-        ${!musicData.musicRoot || !status.palettes
+        ${status.error
+          ? html`<div>Server Unavailable</div>`
+          : !musicData.musicRoot || !status.palettes
           ? html`<div>Loading...</div>`
           : html`<${Folder} musicData=${musicData} status=${status} getData=${getData} setStatus=${setStatus} />`}
       </div>
