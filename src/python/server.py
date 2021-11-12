@@ -28,6 +28,7 @@ GetRequests = {
   '/exit': GetRequest('/exit', lambda req: exit(req)),
   '/files': GetRequest('/files', lambda req: files(req)),
   '/next': GetRequest('/next', lambda req: next(req)),
+  '/nightMode': GetRequest('/nightMode', lambda req: nightMode(req)),
   '/palette': GetRequest('/palette', lambda req: palette(req)),
   '/play': GetRequest('/play', lambda req: play(req)),
   '/power': GetRequest('/power', lambda req: power(req)),
@@ -108,8 +109,13 @@ def status(req, message=None, song=None):
     'playStart': Music.startTime,
     'musicDuration': Music.duration,
     'message': message,
+    'nightMode': Config.NIGHT_MODE_ENABLED,
     # 'playlist': [Music.nowPlaying] + Music.playlist,
   }), "utf-8")
+
+def nightMode(req):
+  Config.NIGHT_MODE_ENABLED = not Config.NIGHT_MODE_ENABLED
+  return status(req, "Toggling night mode")
 
 def power(req):
   Power.toggle()
