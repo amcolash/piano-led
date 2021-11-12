@@ -3,7 +3,7 @@ import Brightness from './Brightness.js';
 import { Button } from './Button.js';
 
 import { eventBus } from './eventBus.js';
-import { alertOctagon, power, refreshCw, sliders } from './icons.js';
+import { alertOctagon, moon, power, refreshCw, sliders } from './icons.js';
 import { Server } from './util.js';
 
 export default function Settings(props) {
@@ -71,6 +71,13 @@ export default function Settings(props) {
         }}
       >
         ${alertOctagon}
+      </${Button}>
+      <${Button}
+        class="icon"
+        style=${{ opacity: props.status.nightMode ? 1 : 0.3, marginLeft: '0.5rem' }}
+        onClick=${() => fetch(`${Server}/nightMode`).then(() => setTimeout(props.getData, 500))}
+      >
+        ${moon}
       </${Button}>
       <div class="icon" style=${{ position: 'relative', marginLeft: '0.5rem' }}>
         ${sliders}
