@@ -200,10 +200,6 @@ class Music:
 
   @classmethod
   def update(cls):
-    if Config.STOP_MUSIC:
-      Config.STOP_MUSIC = False
-      cls.stop()
-
     if len(cls.playlist) > 0 and cls.process == None and MidiPorts.midi_in_system.is_port_open():
       cls.play(cls.playlist.pop(0))
     elif cls.process == None:

@@ -41,3 +41,7 @@ def is_raspberrypi():
       if 'raspberry pi' in m.read().lower(): return True
   except Exception: pass
   return False
+
+def nightModeActive():
+  hour = datetime.datetime.now(Config.TIMEZONE).hour
+  return Config.NIGHT_MODE_ENABLED and hour >= Config.NIGHT_MODE_START_HOUR and hour < Config.NIGHT_MODE_END_HOUR

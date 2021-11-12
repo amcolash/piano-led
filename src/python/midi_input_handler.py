@@ -79,7 +79,9 @@ class MidiInputHandler(object):
           if i >= 0 and i < Config.LED_COUNT and i not in toUpdate:
             toUpdate.append(i)
 
-      Leds.lastPlayed = time.time()
+      # Always show leds even in night mode when manually played. Only trigger leds from midi music when night mode off
+      if not self.midi_out_piano or not util.nightModeActive():
+        Leds.lastPlayed = time.time()
 
       for i in toUpdate:
         if i >= 0 and i < Config.LED_COUNT:

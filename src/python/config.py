@@ -58,7 +58,6 @@ class Configuration:
     self.DIRTY = False
     self.SCROLL = None
     self.PENDING_ACTION = PendingAction.NONE
-    self.STOP_MUSIC = False
 
     # LED strip configuration:
     self.LED_COUNT = 148        # Number of LED pixels.
@@ -111,7 +110,7 @@ class Configuration:
     self.AMBIENT_ENABLED = True
     self.AMBIENT_MODE = AmbientMode.PALETTE_CYCLE
     self.NIGHT_MODE_ENABLED = True
-    self.NIGHT_MODE_TIMEOUT = 10
+    self.NIGHT_MODE_TIMEOUT = 15
     self.NIGHT_MODE_START_HOUR = 1 # Starting hour when night mode begins (inclusive)
     self.NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
 

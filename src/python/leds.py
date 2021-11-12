@@ -36,7 +36,6 @@ class Leds:
     try:
       start = time.time()
       ambient = time.time() - cls.lastPlayed > Config.NIGHT_MODE_TIMEOUT
-      hour = datetime.datetime.now(Config.TIMEZONE).hour
 
       if Config.AMBIENT_MODE == AmbientMode.BOUNCE or Config.AMBIENT_MODE == AmbientMode.PALETTE_BREATH:
         xpos = math.sin((cls.cycle % Config.LED_COUNT) / Config.LED_COUNT * math.pi * 2) * Config.LED_COUNT
@@ -111,7 +110,7 @@ class Leds:
           currentTarget = led['target2'] if len(led['state']) > 0 else ambientColor
 
         # keep LEDs off at night
-        if Config.NIGHT_MODE_ENABLED and hour >= Config.NIGHT_MODE_START_HOUR and hour < Config.NIGHT_MODE_END_HOUR and ambient:
+        if util.nightModeActive() and ambient:
           currentTarget = [0,0,0]
 
         if led['current'] == currentTarget:
