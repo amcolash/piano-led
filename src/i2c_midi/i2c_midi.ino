@@ -21,9 +21,9 @@ void receiveEvent() {
       byte channel = Wire.read();
       byte note = Wire.read();
       byte velocity = Wire.read();
-      
+
+      // All "off" messages just use noteOn + velocity 0, so always send noteOn
       noteOn(channel, note, velocity);
-      MidiUSB.flush();
 
       i += 3;
     } else {
@@ -44,5 +44,5 @@ void noteOff(byte channel, byte pitch, byte velocity) {
 }
 
 void loop() {
-  delay(1);
+  MidiUSB.flush();
 }
