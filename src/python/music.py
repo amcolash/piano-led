@@ -231,7 +231,7 @@ class Music:
 
   @classmethod
   def getFolders(cls):
-    folders = list(glob.glob(musicRoot + '/*'))
+    folders = list(glob.glob(musicRoot + '/*/'))
     folders.sort()
     return folders
 
