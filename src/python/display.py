@@ -10,7 +10,7 @@ from config import AmbientMode, Config, PendingAction, PlayMode
 from menu_item import Icons, MenuItem
 from music import Music
 from palettes import Palette
-from util import enumName, niceTime
+from util import enumName, niceTime, nightModeActive
 
 DOWN_BUTTON = 7
 ENTER_BUTTON = 8
@@ -45,8 +45,8 @@ mainMenu = [
 
 class Display:
   def __init__(self):
-    self.displayOn = False
-    self.lastButton = time.time()
+    self.displayOn = not nightModeActive()
+    self.lastButton = 0 if nightModeActive() else time.time()
 
     self.dirty = True
     self.textScroll = 0
@@ -171,12 +171,10 @@ class Display:
     selectedLabel = items[scroll].label
     if items[scroll].value != None and items[scroll].showValue: selectedLabel = items[scroll].value()
 
-    textScrolling = False
     if len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
       self.textScroll += 3
       self.textTimer = time.time() + 0.6
       self.dirty = True
-      textScrolling = True
 
     if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn:
       # Draw a black filled box to clear the image.
