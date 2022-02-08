@@ -1,6 +1,7 @@
 import glob
 import jsonpickle
 from mido import MidiFile
+from os import path
 from pathlib import Path
 import random
 import subprocess
@@ -231,8 +232,10 @@ class Music:
 
   @classmethod
   def getFolders(cls):
-    folders = list(glob.glob(musicRoot + '/*/'))
+    folders = list(glob.glob(musicRoot + '/*'))
+    folders = list(filter(lambda f: path.isdir(f), folders))
     folders.sort()
+
     return folders
 
   @classmethod
