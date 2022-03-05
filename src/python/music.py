@@ -169,10 +169,7 @@ class Music:
 
       while (not MidiPorts.pianoOn()) and time.time() < waitTime:
         time.sleep(0.1)
-
-      # Just in case to avoid cutting off song
-      time.sleep(0.3)
-
+        MidiPorts.update() # Update status since we are blocking main thread with sleep
 
     # attempt to get new metadata for new files, may not always work...
     if file not in cls.metadata['durations'] or file not in cls.metadata['velocities']:
