@@ -165,10 +165,13 @@ class Music:
     # If the piano is off, turn it on
     if not MidiPorts.pianoOn():
       Power.on()
-      waitTime = time.time() + 7
+      waitTime = time.time() + 15 # wait *up to* 15 seconds after turning on power
 
       while (not MidiPorts.pianoOn()) and time.time() < waitTime:
         time.sleep(0.1)
+
+      # Just in case to avoid cutting off song
+      time.sleep(0.3)
 
 
     # attempt to get new metadata for new files, may not always work...
