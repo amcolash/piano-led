@@ -118,11 +118,29 @@ def nightMode(req):
   return status(req, "Toggling night mode")
 
 def power(req):
-  Power.toggle()
-  return status(req, "Toggling power")
+  query = parse_qs(req.query)
+
+  if 'value' in query:
+    on = bool(query['value'][0])
+
+    if on:
+      Power.on()
+      return status(req, "Turning on power")
+    else:
+      Power.off()
+      return status(req, "Turning off power")
+
+  else:
+    Power.toggle()
+    return status(req, "Toggling power")
 
 def stop(req):
   Music.stop()
+
+  query = parse_qs(req.query)
+  if 'off' in query:
+    Power.Off()
+
   return status(req, "Stopping music")
 
 def volume(req):

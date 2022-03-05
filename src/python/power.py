@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+from midi_ports import MidiPorts
 import time
 
 POWER_PIN = 15
@@ -17,3 +18,13 @@ class Power:
     GPIO.output(POWER_PIN, GPIO.HIGH)
     time.sleep(0.5)
     GPIO.output(POWER_PIN, GPIO.LOW)
+
+  @classmethod
+  def on(cls):
+    if not MidiPorts.pianoOn():
+      cls.toggle()
+
+  @classmethod
+  def off(cls):
+    if MidiPorts.pianoOn():
+      cls.toggle()

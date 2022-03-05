@@ -10,6 +10,7 @@ import time
 from config import Config
 from menu_item import Icons, MenuItem
 from midi_ports import MidiPorts
+from power import Power
 import util
 
 rootPath = str(Path(__file__).parent)
@@ -160,7 +161,8 @@ class Music:
     else:
       MidiPorts.stopAll()
 
-    cls.startTime = time.time()
+    # If the piano is off, turn it on
+    Power.on()
 
     # attempt to get new metadata for new files, may not always work...
     if file not in cls.metadata['durations'] or file not in cls.metadata['velocities']:
@@ -178,6 +180,7 @@ class Music:
     MidiPorts.updateVolume(MidiPorts.userVolume, playVol)
 
     cls.nowPlaying = file
+    cls.startTime = time.time()
     cls.process = subprocess.Popen(['aplaymidi', '--port=System MIDI In', file],
       stdout=subprocess.PIPE,
       universal_newlines=True)
