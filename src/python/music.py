@@ -165,9 +165,9 @@ class Music:
     # If the piano is off, turn it on
     if not MidiPorts.pianoOn():
       Power.on()
-      waitTime = time.time() + 5
+      waitTime = time.time() + 7
 
-      while not MidiPorts.pianoOn() and time.time() < waitTime:
+      while (not MidiPorts.pianoOn()) and time.time() < waitTime:
         time.sleep(0.1)
 
 
