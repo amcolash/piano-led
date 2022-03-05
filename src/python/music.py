@@ -165,11 +165,11 @@ class Music:
     # If the piano is off, turn it on
     if not MidiPorts.pianoOn():
       Power.on()
-      waitTime = time.time() + 15 # wait *up to* 15 seconds after turning on power
+      waitTime = time.time() + 20 # wait *up to* 20 seconds after turning on power before playing file
 
       while (not MidiPorts.pianoOn()) and time.time() < waitTime:
         time.sleep(0.1)
-        MidiPorts.update() # Update status since we are blocking main thread with sleep
+        MidiPorts.update() # Update status since we are blocking update main thread with sleep
 
     # attempt to get new metadata for new files, may not always work...
     if file not in cls.metadata['durations'] or file not in cls.metadata['velocities']:
