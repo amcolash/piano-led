@@ -163,7 +163,13 @@ class Music:
       MidiPorts.stopAll()
 
     # If the piano is off, turn it on
-    Power.on()
+    if not MidiPorts.pianoOn():
+      Power.on()
+      waitTime = time.time() + 5
+
+      while not MidiPorts.pianoOn() and time.time() < waitTime:
+        time.sleep(0.1)
+
 
     # attempt to get new metadata for new files, may not always work...
     if file not in cls.metadata['durations'] or file not in cls.metadata['velocities']:

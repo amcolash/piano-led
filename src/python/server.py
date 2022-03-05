@@ -139,7 +139,7 @@ def stop(req):
 
   query = parse_qs(req.query)
   if 'off' in query:
-    Power.Off()
+    Power.off()
 
   return status(req, "Stopping music")
 
