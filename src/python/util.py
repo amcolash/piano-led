@@ -44,4 +44,11 @@ def is_raspberrypi():
 
 def nightModeActive():
   hour = datetime.datetime.now(Config.TIMEZONE).hour
-  return Config.NIGHT_MODE_ENABLED and hour >= Config.NIGHT_MODE_START_HOUR and hour < Config.NIGHT_MODE_END_HOUR
+  minute = datetime.datetime.now(Config.TIMEZONE).minute
+
+  current = hour + minute / 60
+
+  start = Config.NIGHT_MODE_START_HOUR + Config.NIGHT_MODE_START_MINUTE / 60
+  end = Config.NIGHT_MODE_END_HOUR + Config.NIGHT_MODE_START_MINUTE / 60
+
+  return Config.NIGHT_MODE_ENABLED and current >= start and current < end
