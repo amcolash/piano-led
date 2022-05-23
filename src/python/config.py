@@ -119,7 +119,7 @@ class Configuration:
 
     self.CYCLE_SPEED = 0.15
 
-    self.CHORDS = True # Chord mode
+    self.CHORDS = False # Chord mode
     self.CHORDS_ENABLED = True # If current active
     self.CHORDS_MAJOR = True # Major or minor chords
     self.CHORDS_NOTES = "" # Notes to display

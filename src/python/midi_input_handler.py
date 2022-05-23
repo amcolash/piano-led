@@ -43,11 +43,11 @@ class MidiInputHandler(object):
     event = message[0] >> 4
 
     note = message[1]
-    velocity = message[2]
 
     # Only handle ON (0b1001) and OFF (0b1000) events on ANY channel
     if (event == 0b1001 or event == 0b1000) and note >= Config.MIN_KEY and note <= Config.MAX_KEY:
       # print("[%s] @%0.6f %r %s" % (self.port, self.wallclock, message, is_on))
+      velocity = message[2]
 
       # Forward piano midi messages to leonardo
       if not Config.CHORDS and not self.midi_out_piano:

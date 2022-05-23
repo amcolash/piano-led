@@ -17,7 +17,8 @@ DOWN_BUTTON = 7
 ENTER_BUTTON = 8
 UP_BUTTON = 12
 
-TEXT_SCROLL_DELAY = 3
+TEXT_SCROLL_INITIAL_DELAY = 1.5
+TEXT_SCROLL_DELAY = 0.5
 
 mainMenu = [
   MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
@@ -109,7 +110,6 @@ class Display:
       items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
 
       if Config.CHORDS:
-        self.dirty = True
         if channel == UP_BUTTON:
           Config.CHORDS = False
         if channel == ENTER_BUTTON:
@@ -144,7 +144,7 @@ class Display:
 
       menuSection['scroll'] = menuSection['scroll'] % len(items)
 
-    self.textTimer = time.time() + TEXT_SCROLL_DELAY
+    self.textTimer = time.time() + 1.5
     self.textScroll = 0
     self.dirty = True
 
@@ -167,7 +167,7 @@ class Display:
     if self.updatedMenu:
       self.menu = self.updatedMenu
       self.textScroll = 0
-      self.textTimer = time.time() + TEXT_SCROLL_DELAY
+      self.textTimer = time.time() + TEXT_SCROLL_INITIAL_DELAY
       self.updatedMenu = None
       self.dirty = True
 
@@ -192,7 +192,7 @@ class Display:
 
     if Config.DIRTY:
       self.textScroll = 0
-      self.textTimer = time.time() + TEXT_SCROLL_DELAY
+      self.textTimer = time.time() + TEXT_SCROLL_INITIAL_DELAY
 
     menuSection = self.menu[len(self.menu) - 1]
 
@@ -206,8 +206,8 @@ class Display:
     if items[scroll].value != None and items[scroll].showValue: selectedLabel = items[scroll].value()
 
     if not Config.CHORDS and len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
-      self.textScroll += 3
-      self.textTimer = time.time() + 0.6
+      self.textScroll += 2
+      self.textTimer = time.time() + TEXT_SCROLL_DELAY
       self.dirty = True
 
     if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn:
@@ -223,7 +223,7 @@ class Display:
           self.draw.text((8, 22), "Major" if Config.CHORDS_MAJOR else "Minor", font=self.font, fill=1)
 
           self.draw.text((68, 22), Config.CHORDS_NOTES, font=self.font, fill=1)
-        else:
+        elif self.dirty:
           # Selction rectangle
           self.draw.rectangle((0, 12, self.width, 21), fill=1)
 
