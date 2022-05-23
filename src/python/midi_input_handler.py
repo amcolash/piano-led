@@ -1,3 +1,4 @@
+from rtmidi.midiconstants import NOTE_ON
 from threading import Thread
 import sys
 import time
@@ -9,10 +10,11 @@ from palettes import Palettes
 import util
 
 class MidiInputHandler(object):
-  def __init__(self, port, midi_out_piano, midi_lock):
+  def __init__(self, port, midi_out_piano, midi_out_system, midi_lock):
     self.port = port
     self.wallclock = time.time()
     self.midi_out_piano = midi_out_piano
+    self.midi_out_system = midi_out_system
     self.midi_lock = midi_lock
     self.colorIndex = 0
 
@@ -40,20 +42,51 @@ class MidiInputHandler(object):
     # Strip channel from message - all channels will be played
     event = message[0] >> 4
 
+    note = message[1]
+    velocity = message[2]
+
     # Only handle ON (0b1001) and OFF (0b1000) events on ANY channel
-    if (event == 0b1001 or event == 0b1000) and message[1] >= Config.MIN_KEY and message[1] <= Config.MAX_KEY:
+    if (event == 0b1001 or event == 0b1000) and note >= Config.MIN_KEY and note <= Config.MAX_KEY:
       # print("[%s] @%0.6f %r %s" % (self.port, self.wallclock, message, is_on))
 
       # Forward piano midi messages to leonardo
-      if not self.midi_out_piano:
+      if not Config.CHORDS and not self.midi_out_piano:
         sendMessage = Thread(target=self.sendI2C, args=[message])
         sendMessage.start()
 
-      velocity = message[2]
       is_on = event == 0b1001 and velocity > 0
 
+      # Handle Chord Mode
+      if Config.CHORDS and Config.CHORDS_ENABLED:
+        if self.midi_out_system and self.midi_out_system.is_port_open():
+          # Turn on display if it was off
+          Config.DISPLAY_ON_FORCE = True
+
+          note1 = note + (4 if Config.CHORDS_MAJOR else 3)
+          note2 = note + 7
+
+          # Play note an octave down
+          note3 = note - 12
+
+          allNotes = [ 'C ', 'C#', 'D ', 'D#', 'E ', 'F ', 'F#', 'G ', 'G#', 'A ', 'A#', 'B ' ]
+          note1Name = allNotes[note % 12]
+          note2Name = allNotes[note1 % 12]
+          note3Name = allNotes[note2 % 12]
+
+          if is_on:
+            Config.CHORDS_NOTES = note1Name + "  " + note2Name + "  " + note3Name
+            # print(Config.CHORDS_NOTES)
+            # print(str(note) + " " + str(note1) + " " + str(note2))
+
+          try:
+            self.midi_out_system.send_message([NOTE_ON, note1, velocity])
+            self.midi_out_system.send_message([NOTE_ON, note2, velocity])
+            self.midi_out_system.send_message([NOTE_ON, note3, velocity])
+          except:
+            print(util.niceTime() + ': ' + str(sys.exc_info()))
+
       # Normal LED Order
-      key = (message[1] - Config.MIN_KEY)
+      key = (note - Config.MIN_KEY)
 
       led = int((key / (Config.TOTAL_KEYS + 1)) * Config.LED_COUNT)
 
@@ -111,5 +144,6 @@ class MidiInputHandler(object):
   def sendI2C(self, message):
     try:
       I2C.bus.write_i2c_block_data(Config.I2C_MIDI_ADDRESS, 0, message)
-    except:
-      if Config.DEBUG_I2C: print(util.niceTime() + ': ' + str(sys.exc_info()))
+      I2C.bus.write_quick(Config.I2C_MIDI_ADDRESS)
+    except OSError:
+      if Config.DEBUG_I2C: print(util.niceTime() + ' [I2C]: ' + str(sys.exc_info()))

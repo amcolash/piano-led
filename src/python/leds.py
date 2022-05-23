@@ -1,4 +1,3 @@
-import datetime
 import math
 from rpi_ws281x import PixelStrip, Color
 import time
@@ -153,4 +152,4 @@ class Leds:
         cls.cycle -= Config.LED_COUNT
 
     except OSError:
-      print(util.niceTime() + ': ' + sys.exc_info())
+      print(util.niceTime() + ' [LEDS]: ' + sys.exc_info())

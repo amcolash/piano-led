@@ -7,6 +7,7 @@ import sys
 import time
 
 from config import AmbientMode, Config, PendingAction, PlayMode
+from i2c import I2C
 from menu_item import Icons, MenuItem
 from music import Music
 from palettes import Palette
@@ -20,6 +21,7 @@ TEXT_SCROLL_DELAY = 3
 
 mainMenu = [
   MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
+  MenuItem('Chords', lambda value: Config.updateValue('CHORDS', not value), value=lambda: Config.CHORDS, icon=Icons['chords']),
   MenuItem('Settings', items=[
     MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette), icon=Icons['color']),
     MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode), icon=Icons['light']),
@@ -54,6 +56,10 @@ class Display:
 
     self.menu = [{'scroll': 0, 'items': mainMenu}]
     self.updatedMenu = None
+
+    self.chordMode = Config.CHORDS
+    self.lastNotes = Config.CHORDS_NOTES
+    self.lastNotesTime = time.time()
 
     # Set up GPIO Pins
     GPIO.setup(DOWN_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -102,30 +108,39 @@ class Display:
       menuSection = self.menu[len(self.menu) - 1]
       items = list(filter(lambda i: i.visible() if i.visible != None else True, menuSection['items']))
 
-      if channel == UP_BUTTON:
-        menuSection['scroll'] -= 1
-      elif channel == DOWN_BUTTON:
-        menuSection['scroll'] += 1
-      elif channel == ENTER_BUTTON:
-        selected = items[menuSection['scroll']]
+      if Config.CHORDS:
+        self.dirty = True
+        if channel == UP_BUTTON:
+          Config.CHORDS = False
+        if channel == ENTER_BUTTON:
+          Config.CHORDS_ENABLED = not Config.CHORDS_ENABLED
+        if channel == DOWN_BUTTON:
+          Config.CHORDS_MAJOR = not Config.CHORDS_MAJOR
+      else:
+        if channel == UP_BUTTON:
+          menuSection['scroll'] -= 1
+        elif channel == DOWN_BUTTON:
+          menuSection['scroll'] += 1
+        elif channel == ENTER_BUTTON:
+          selected = items[menuSection['scroll']]
 
-        if len(selected.items) > 0:
-          self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', parent=selected)] + selected.items}]
-        elif len(selected.options) > 0:
-          scroll = 1
+          if len(selected.items) > 0:
+            self.updatedMenu = self.menu + [{'scroll': 1, 'items': [MenuItem('Back', parent=selected)] + selected.items}]
+          elif len(selected.options) > 0:
+            scroll = 1
 
-          try:
-            if selected.value != None: scroll = selected.options.index(selected.value()) + 1
-          except:
-            print(niceTime() + ': ' + str(sys.exc_info()))
+            try:
+              if selected.value != None: scroll = selected.options.index(selected.value()) + 1
+            except:
+              print(niceTime() + ': ' + str(sys.exc_info()))
 
-          options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, value=lambda: i, parent=selected), selected.options))
-          self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', parent=selected)] + options}]
-        else:
-          if selected.onSelect != None and selected.value != None: selected.onSelect(selected.value())
-          elif selected.onSelect != None: selected.onSelect()
+            options = list(map(lambda i: MenuItem(enumName(i), selected.onSelect, value=lambda: i, parent=selected), selected.options))
+            self.updatedMenu = self.menu + [{'scroll': scroll, 'items': [MenuItem('Back', parent=selected)] + options}]
+          else:
+            if selected.onSelect != None and selected.value != None: selected.onSelect(selected.value())
+            elif selected.onSelect != None: selected.onSelect()
 
-          if selected.parent: self.back()
+            if selected.parent: self.back()
 
       menuSection['scroll'] = menuSection['scroll'] % len(items)
 
@@ -156,6 +171,25 @@ class Display:
       self.updatedMenu = None
       self.dirty = True
 
+    if self.lastNotes != Config.CHORDS_NOTES:
+      self.dirty = True
+      self.lastNotes = Config.CHORDS_NOTES
+      self.lastNotesTime = time.time()
+
+    if Config.CHORDS and time.time() - self.lastNotesTime > 10 and self.lastNotes != "":
+      self.dirty = True
+      self.lastNotes = ""
+      Config.CHORDS_NOTES = ""
+
+    if self.chordMode != Config.CHORDS:
+      self.dirty = True
+      self.chordMode = Config.CHORDS
+
+    if Config.DISPLAY_ON_FORCE:
+      Config.DISPLAY_ON_FORCE = False
+      self.displayOn = True
+      self.lastButton = time.time()
+
     if Config.DIRTY:
       self.textScroll = 0
       self.textTimer = time.time() + TEXT_SCROLL_DELAY
@@ -171,67 +205,76 @@ class Display:
     selectedLabel = items[scroll].label
     if items[scroll].value != None and items[scroll].showValue: selectedLabel = items[scroll].value()
 
-    if len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
+    if not Config.CHORDS and len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
       self.textScroll += 3
       self.textTimer = time.time() + 0.6
       self.dirty = True
 
     if self.dirty or Config.DIRTY or prevDisplayOn != self.displayOn:
       # Draw a black filled box to clear the image.
-      self.draw.rectangle((0, 0, self.width, self.height), outline=0, fill=0)
+      self.draw.rectangle((0, 0, self.width, self.height), fill=0)
 
       if self.displayOn:
-        # Selction rectangle
-        self.draw.rectangle((0, 12, self.width, 21), fill=1)
+        if Config.CHORDS and self.dirty:
+          self.draw.text((self.width - 38, -1), "CHORDS", font=self.font, fill=1)
 
-        x = 10
-        y = 1
-        i = 0
+          self.image.paste(Icons['back'], (8, 0, 8 + 10, 0 + 10))
+          self.draw.text((8, 11), "On" if Config.CHORDS_ENABLED else "Off", font=self.font, fill=1)
+          self.draw.text((8, 22), "Major" if Config.CHORDS_MAJOR else "Minor", font=self.font, fill=1)
 
-        if len(items) > 1:
-          toShow = [(scroll - 1) % len(items), scroll, (scroll + 1) % len(items)]
+          self.draw.text((68, 22), Config.CHORDS_NOTES, font=self.font, fill=1)
         else:
-          toShow = [0]
-          y += 10
-          i = 1
+          # Selction rectangle
+          self.draw.rectangle((0, 12, self.width, 21), fill=1)
 
-        for v in toShow:
-          item = items[v]
+          x = 10
+          y = 1
+          i = 0
 
-          label = item.label
-          if item.value != None and item.showValue: label = item.value()
-
-          if i == 1 and len(label) > 17:
-            label += '     '
-            offset = self.textScroll % len(label)
-            labelStart = label[0 : offset]
-            labelEnd = label[offset :]
-            self.draw.text((x, y), labelEnd + labelStart, font=self.font, fill=0)
+          if len(items) > 1:
+            toShow = [(scroll - 1) % len(items), scroll, (scroll + 1) % len(items)]
           else:
-            self.draw.text((x, y), label, font=self.font, fill=0 if i == 1 else 1)
+            toShow = [0]
+            y += 10
+            i = 1
 
-          self.draw.rectangle((115, y + 1, self.width, y + 10), fill=1 if i == 1 else 0)
+          for v in toShow:
+            item = items[v]
 
-          icon = None
-          if len(item.items) > 0: icon = Icons['triangle']
-          if label == 'Back': icon = Icons['back']
-          if item.value != None:
-            if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['checkmark']
-            elif item.value() == True and type(item.value()) == bool: icon = Icons['checkmark']
-          if item.icon != None: icon = item.icon
+            label = item.label
+            if item.value != None and item.showValue: label = item.value()
 
-          if icon != None:
-            icon = ImageOps.invert(icon.convert('RGB')).convert('P') if i == 1 else icon
-            self.image.paste(icon, (116, y + 1, 116 + 10, y + 11))
+            if i == 1 and len(label) > 17:
+              label += '     '
+              offset = self.textScroll % len(label)
+              labelStart = label[0 : offset]
+              labelEnd = label[offset :]
+              self.draw.text((x, y), labelEnd + labelStart, font=self.font, fill=0)
+            else:
+              self.draw.text((x, y), label, font=self.font, fill=0 if i == 1 else 1)
 
-          y += 10
-          i += 1
+            self.draw.rectangle((115, y + 1, self.width, y + 10), fill=1 if i == 1 else 0)
 
-      self.disp.image(self.image)
+            icon = None
+            if len(item.items) > 0: icon = Icons['triangle']
+            if label == 'Back': icon = Icons['back']
+            if item.value != None:
+              if item.parent != None and item.parent.value != None and item.parent.value() == item.value(): icon = Icons['checkmark']
+              elif item.value() == True and type(item.value()) == bool: icon = Icons['checkmark']
+            if item.icon != None: icon = item.icon
 
-      # self.disp.fill_rect(0, 12, self.width, 10, 1)
-      # self.disp.text('Testing String Here', 10, 13, 0, size=1)
-      self.disp.show()
+            if icon != None:
+              icon = ImageOps.invert(icon.convert('RGB')).convert('P') if i == 1 else icon
+              self.image.paste(icon, (116, y + 1, 116 + 10, y + 11))
+
+            y += 10
+            i += 1
+
+        try:
+          self.disp.image(self.image)
+          self.disp.show()
+        except OSError:
+          print(niceTime() + ' [Display]: ' + str(sys.exc_info()))
 
     Config.DIRTY = False
     self.dirty = False

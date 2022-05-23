@@ -21,6 +21,7 @@ class MidiPorts:
   midi_in_piano = rtmidi.MidiIn()
   midi_in_system = rtmidi.MidiIn()
   midi_out_piano = rtmidi.MidiOut()
+  midi_out_system = rtmidi.MidiOut()
 
   midi_lock = Lock()
 
@@ -34,8 +35,11 @@ class MidiPorts:
 
         if not cls.midi_in_system.is_port_open():
           port_name = cls.midi_in_system.open_port(0)
-          cls.midi_in_system.set_callback(MidiInputHandler(port_name, cls.midi_out_piano, cls.midi_lock))
+          cls.midi_in_system.set_callback(MidiInputHandler(port_name, cls.midi_out_piano, None, cls.midi_lock))
           cls.midi_in_system.set_client_name('System MIDI In')
+
+          cls.midi_out_system.open_port(0)
+          cls.midi_out_system.set_client_name('System MIDI Out')
 
         ports = cls.midi_in_piano.get_ports()
         keyboard_present = any(Config.MIDI_DEVICE in string for string in ports)
@@ -51,7 +55,7 @@ class MidiPorts:
           if not cls.midi_in_piano.is_port_open():
             if Config.DEBUG_MIDI: print('Init MIDI')
             port_name = cls.midi_in_piano.open_port(1)
-            cls.midi_in_piano.set_callback(MidiInputHandler(port_name, None, None))
+            cls.midi_in_piano.set_callback(MidiInputHandler(port_name, None, cls.midi_out_system, cls.midi_lock))
             cls.midi_in_piano.set_client_name('Piano MIDI In')
 
             cls.midi_out_piano.open_port(1)

@@ -91,6 +91,7 @@ class Configuration:
     # Timeout before menu goes back to main one (in minutes)
     self.DISPLAY_MENU_RESET = 2
     self.DISPLAY_OFF_TIMEOUT = 30
+    self.DISPLAY_ON_FORCE = False # Toggles on display immediately
 
     self.PLAY_MODE = PlayMode.BRIGHTEN_CURRENT
 
@@ -117,6 +118,11 @@ class Configuration:
     self.NIGHT_MODE_END_MINUTE = 30 # Ending minute when night mode stops (exclusive)
 
     self.CYCLE_SPEED = 0.15
+
+    self.CHORDS = True # Chord mode
+    self.CHORDS_ENABLED = True # If current active
+    self.CHORDS_MAJOR = True # Major or minor chords
+    self.CHORDS_NOTES = "" # Notes to display
 
   def updatePalette(self, pal, save=True):
     self.CURRENT_PALETTE = pal
