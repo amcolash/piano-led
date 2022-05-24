@@ -270,11 +270,11 @@ class Display:
             y += 10
             i += 1
 
-        try:
-          self.disp.image(self.image)
-          self.disp.show()
-        except OSError:
-          print(niceTime() + ' [Display]: ' + str(sys.exc_info()))
+      try:
+        self.disp.image(self.image)
+        self.disp.show()
+      except OSError:
+        print(niceTime() + ' [Display]: ' + str(sys.exc_info()))
 
     Config.DIRTY = False
     self.dirty = False
