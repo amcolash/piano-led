@@ -1,5 +1,6 @@
-from rtmidi.midiconstants import NOTE_ON
+from rtmidi.midiconstants import NOTE_ON, PROGRAM_CHANGE
 from threading import Thread
+import random
 import sys
 import time
 
@@ -79,9 +80,29 @@ class MidiInputHandler(object):
             # print(str(note) + " " + str(note1) + " " + str(note2))
 
           try:
-            self.midi_out_system.send_message([NOTE_ON, note1, velocity])
-            self.midi_out_system.send_message([NOTE_ON, note2, velocity])
-            self.midi_out_system.send_message([NOTE_ON, note3, velocity])
+            # Change to nicer piano program on channel 0
+            self.midi_out_system.send_message([PROGRAM_CHANGE, 2])
+
+            # Send actual notes
+            time.sleep(random.uniform(0.0005, 0.002))
+            vel1 = int(random.uniform(0.85, 1.15) * velocity)
+            self.midi_out_system.send_message([NOTE_ON, note1, vel1])
+
+            time.sleep(random.uniform(0.0005, 0.002))
+            vel2 = int(random.uniform(0.85, 1.15) * velocity)
+            self.midi_out_system.send_message([NOTE_ON, note2, vel2])
+
+            time.sleep(random.uniform(0.0005, 0.002))
+            vel3 = int(random.uniform(0.85, 1.15) * velocity)
+            self.midi_out_system.send_message([NOTE_ON, note3, vel3])
+
+            # When turning off notes, also turn off the opposite for major/minor to prevent hanging notes
+            if not is_on:
+              time.sleep(random.uniform(0.0005, 0.002))
+
+              note4 = note + (3 if Config.CHORDS_MAJOR else 4)
+              vel4 = int(random.uniform(0.85, 1.15) * velocity)
+              self.midi_out_system.send_message([NOTE_ON, note4, vel4])
           except:
             print(util.niceTime() + ': ' + str(sys.exc_info()))
 

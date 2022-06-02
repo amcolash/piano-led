@@ -9,6 +9,7 @@ import time
 from config import AmbientMode, Config, PendingAction, PlayMode
 from i2c import I2C
 from menu_item import Icons, MenuItem
+from midi_ports import MidiPorts
 from music import Music
 from palettes import Palette
 from util import enumName, niceTime, nightModeActive
@@ -112,8 +113,10 @@ class Display:
       if Config.CHORDS:
         if channel == UP_BUTTON:
           Config.CHORDS = False
+          if not Config.CHORDS: MidiPorts.stopAll()
         if channel == ENTER_BUTTON:
           Config.CHORDS_ENABLED = not Config.CHORDS_ENABLED
+          if not Config.CHORDS_ENABLED: MidiPorts.stopAll()
         if channel == DOWN_BUTTON:
           Config.CHORDS_MAJOR = not Config.CHORDS_MAJOR
       else:
