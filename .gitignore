@@ -2,3 +2,4 @@ __pycache__/
 midi/
 settings.json
 metadata.json
+values.py

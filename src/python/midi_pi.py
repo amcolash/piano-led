@@ -4,6 +4,7 @@ import sys
 import time
 from threading import Thread
 
+from cal import Cal
 from config import Config
 from display import Display
 from i2c import I2C
@@ -34,6 +35,7 @@ class MidiPi:
     Config.update()
     Leds.updateLeds()
     Music.update()
+    Cal.update()
     self.Display.update()
     updatePendingActions(self.Display)
 
