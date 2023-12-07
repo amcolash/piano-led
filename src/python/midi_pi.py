@@ -35,7 +35,7 @@ class MidiPi:
     Config.update()
     Leds.updateLeds()
     Music.update()
-    Cal.update()
+    # Cal.update()
     self.Display.update()
     updatePendingActions(self.Display)
 

@@ -35,7 +35,7 @@ GetRequests = {
   '/status': GetRequest('/status', lambda req: status(req)),
   '/stop': GetRequest('/stop', lambda req: stop(req)),
   '/volume': GetRequest('/volume', lambda req: volume(req)),
-  '*': GetRequest('/', lambda req: other(req), 'application/html')
+  '*': GetRequest('/', lambda req: other(req), 'text/html')
 }
 
 def brightness(req):
@@ -121,12 +121,14 @@ def power(req):
   query = parse_qs(req.query)
 
   if 'value' in query:
-    on = bool(query['value'][0])
+    value = query['value'][0]
 
-    if on:
+    if value == "true" or value == "on":
       Power.on()
+      print("on")
       return status(req, "Turning on power")
     else:
+      print("off")
       Power.off()
       return status(req, "Turning off power")
 

@@ -114,7 +114,7 @@ class Configuration:
     self.NIGHT_MODE_TIMEOUT = 15
     self.NIGHT_MODE_START_HOUR = 0 # Starting hour when night mode begins (inclusive)
     self.NIGHT_MODE_START_MINUTE = 30 # Starting minute when night mode begins (inclusive)
-    self.NIGHT_MODE_END_HOUR = 7 # Ending hour when night mode stops (exclusive)
+    self.NIGHT_MODE_END_HOUR = 23 # Ending hour when night mode stops (exclusive)
     self.NIGHT_MODE_END_MINUTE = 30 # Ending minute when night mode stops (exclusive)
 
     self.CYCLE_SPEED = 0.15
