@@ -1,4 +1,4 @@
-import RPi.GPIO as GPIO
+from gpiozero import DigitalOutputDevice
 from midi_ports import MidiPorts
 import time
 
@@ -8,16 +8,13 @@ class Power:
   @classmethod
   def init(cls):
     # Set power pin to output
-    GPIO.setup(POWER_PIN, GPIO.OUT)
-
-    # Set default power state to off
-    GPIO.output(POWER_PIN, GPIO.LOW)
+    cls.power = DigitalOutputDevice(POWER_PIN, initial_value=False)
 
   @classmethod
   def toggle(cls):
-    GPIO.output(POWER_PIN, GPIO.HIGH)
+    cls.power.on()
     time.sleep(0.5)
-    GPIO.output(POWER_PIN, GPIO.LOW)
+    cls.power.off()
 
   @classmethod
   def on(cls):
