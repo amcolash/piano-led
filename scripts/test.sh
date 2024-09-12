@@ -9,7 +9,7 @@ fi
 
 systemctl stop piano-led.service
 
-killall nodemon
+# killall nodemon
 killall python3
 
 SCRIPT_DIR=$(dirname $(readlink -f $0))

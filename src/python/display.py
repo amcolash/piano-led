@@ -68,9 +68,12 @@ class Display:
     GPIO.setup(ENTER_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     GPIO.setup(UP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    GPIO.add_event_detect(DOWN_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
-    GPIO.add_event_detect(ENTER_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
-    GPIO.add_event_detect(UP_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    try:
+      GPIO.add_event_detect(DOWN_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+      GPIO.add_event_detect(ENTER_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+      GPIO.add_event_detect(UP_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    except RuntimeError as e:
+      print(f"Error: {e}")
 
     # Init i2c bus
     i2c = busio.I2C(SCL, SDA)

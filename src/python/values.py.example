@@ -1,0 +1,4 @@
+# These values will be set up assuming you have HomeAssistant + Tuya set up
+
+CALENDAR_ID = "abcdef"
+TUYA_SERVER = "http://192.168.1.101:1234"
