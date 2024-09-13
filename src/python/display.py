@@ -2,7 +2,7 @@ import adafruit_ssd1306
 from board import SCL, SDA
 import busio
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from gpiozero import Button
+import RPi.GPIO as GPIO
 import sys
 import time
 
@@ -64,13 +64,16 @@ class Display:
     self.lastNotesTime = time.time()
 
     # Set up GPIO Pins
-    down = Button(DOWN_BUTTON, bounce_time=0.3)
-    enter = Button(ENTER_BUTTON, bounce_time=0.3)
-    up = Button(UP_BUTTON, bounce_time=0.3)
+    GPIO.setup(DOWN_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(ENTER_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+    GPIO.setup(UP_BUTTON, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-    down.when_pressed = lambda: self.button_callback(DOWN_BUTTON)
-    enter.when_pressed = lambda: self.button_callback(ENTER_BUTTON)
-    up.when_pressed = lambda: self.button_callback(UP_BUTTON)
+    try:
+      GPIO.add_event_detect(DOWN_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+      GPIO.add_event_detect(ENTER_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+      GPIO.add_event_detect(UP_BUTTON, GPIO.FALLING, callback=self.button_callback, bouncetime=300)
+    except RuntimeError as e:
+      print(f"Error: {e}")
 
     # Init i2c bus
     i2c = busio.I2C(SCL, SDA)
