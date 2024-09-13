@@ -4,7 +4,6 @@ LEDs for my piano!
 
 ## Requirements
 
-- `python3-gpiozero`
 - `libopenjp2-7-dev`
 - `libjack-jackd2-dev`
 
@@ -14,7 +13,7 @@ LEDs for my piano!
 
 ### Install everything at ounce
 
-`sudo apt-get python3-gpiozero libopenjp2-7-dev libjack-jackd2-dev python3-pip entr`
+`sudo apt-get libopenjp2-7-dev libjack-jackd2-dev python3-pip entr`
 
 ## Python dependencies
 
