@@ -22,6 +22,7 @@ savedValues = [
   'DISPLAY_MENU_RESET',
   'DISPLAY_OFF_TIMEOUT',
   'MAX_AMBIENT_BRIGHTNESS',
+  'MUSIC_PLAYING_OVERRIDE'
 ]
 
 # PLAYING_MODE Options
@@ -79,6 +80,7 @@ class Configuration:
     self.MIDI_DEVICE = "Digital Keyboard" # A partial match of the midi device name
     self.TIMEZONE = pytz.timezone("America/Los_Angeles")
     self.PORT = 8080 # server port
+    self.FPS = 100 # max updates per second. max updaes on pi2 currently peaks at 220. recommended to keep below to not fully use cpu
 
     # Key Configuration
     self.MIN_KEY = 28
@@ -86,7 +88,7 @@ class Configuration:
     self.TOTAL_KEYS = self.MAX_KEY - self.MIN_KEY
 
     # Playing Configuration
-    self.FADE_SPEED = 5
+    self.FADE_SPEED = 1
 
     # Timeout before menu goes back to main one (in minutes)
     self.DISPLAY_MENU_RESET = 2
@@ -97,10 +99,10 @@ class Configuration:
 
     # Scalar of how much to brighten colors
     self.MAX_AMBIENT_BRIGHTNESS = 20
-    self.BRIGHTEN_AMOUNT = 10
+    self.BRIGHTEN_AMOUNT = 5
 
     # Number of keys to ripple from
-    self.RIPPLE_KEYS = 8
+    self.RIPPLE_KEYS = 3
 
     # Color Configuration
     self.CURRENT_PALETTE = Palette.Ocean
@@ -116,6 +118,7 @@ class Configuration:
     self.NIGHT_MODE_START_MINUTE = 30 # Starting minute when night mode begins (inclusive)
     self.NIGHT_MODE_END_HOUR = 23 # Ending hour when night mode stops (exclusive)
     self.NIGHT_MODE_END_MINUTE = 30 # Ending minute when night mode stops (exclusive)
+    self.MUSIC_PLAYING_OVERRIDE = True
 
     self.CYCLE_SPEED = 0.15
 

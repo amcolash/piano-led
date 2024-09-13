@@ -19,7 +19,7 @@ ENTER_BUTTON = 8
 UP_BUTTON = 12
 
 TEXT_SCROLL_INITIAL_DELAY = 1.5
-TEXT_SCROLL_DELAY = 0.5
+TEXT_SCROLL_DELAY = 0.2
 
 mainMenu = [
   MenuItem('Music', items=Music.getMusic(), icon=Icons['music']),
@@ -27,6 +27,7 @@ mainMenu = [
   MenuItem('Settings', items=[
     MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette), icon=Icons['color']),
     MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode), icon=Icons['light']),
+    MenuItem('Music LED Override', lambda value: Config.updateValue('MUSIC_PLAYING_OVERRIDE', not value), value=lambda: Config.MUSIC_PLAYING_OVERRIDE),
     MenuItem('Ambient', items=[
       MenuItem('Ambient Mode', lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
       MenuItem('Ambient Enabled', lambda value: Config.updateValue('AMBIENT_ENABLED', not value), value=lambda: Config.AMBIENT_ENABLED),
@@ -212,7 +213,7 @@ class Display:
     if items[scroll].value != None and items[scroll].showValue: selectedLabel = items[scroll].value()
 
     if not Config.CHORDS and len(selectedLabel) > 17 and self.displayOn and time.time() > self.textTimer:
-      self.textScroll += 2
+      self.textScroll += 1
       self.textTimer = time.time() + TEXT_SCROLL_DELAY
       self.dirty = True
 

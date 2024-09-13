@@ -7,7 +7,7 @@ function playDir() {
   for f in `find "$1" -name '*.mid' -print | shuf`
   do
     echo $f
-    aplaymidi --port="$PORT" $f
+    aplaymidi --port="$PORT" "$f"
   done
 }
 

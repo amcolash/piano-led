@@ -3,6 +3,7 @@ import pstats
 import sys
 import time
 from threading import Thread
+from math import floor
 
 from cal import Cal
 from config import Config
@@ -28,9 +29,16 @@ class MidiPi:
     self.serverThread.daemon = True
     self.serverThread.start()
 
+    self.updates = 0
+    self.sec = time.time()
+    self.frameTime = 1 / Config.FPS
+
     print('Init Complete')
 
   def update(self):
+    # Track when the frame started
+    start = time.time()
+
     MidiPorts.update()
     Config.update()
     Leds.updateLeds()
@@ -38,6 +46,15 @@ class MidiPi:
     # Cal.update()
     self.Display.update()
     updatePendingActions(self.Display)
+
+    # Limit number of updates to try and match fps
+    end = time.time()
+    diff = end - start
+    if diff < self.frameTime:
+      time.sleep(self.frameTime - diff)
+
+    # Uncomment to enable fps logging (per second)
+    # self.fpsLogging()
 
   def profile(self):
     # Just wait for keyboard interrupt, everything else is handled via the input callback.
@@ -52,6 +69,13 @@ class MidiPi:
     profile.disable()
     ps = pstats.Stats(profile)
     ps.print_stats()
+
+def fpsLogging(self):
+  self.updates += 1
+  if floor(time.time()) > floor(self.sec):
+    print("FPS: " + str(self.updates))
+    self.updates = 0
+    self.sec = time.time()
 
 if __name__ == "__main__":
   try:
