@@ -118,8 +118,14 @@ class Leds:
 
         for c in range(3):
           if abs(led['current'][c] - currentTarget[c]) <= Config.FADE_SPEED: led['current'][c] = currentTarget[c]
-          elif led['current'][c] < currentTarget[c]: led['current'][c] = min(currentTarget[c], int((led['current'][c] + 1) * 1.25))
-          elif led['current'][c] > currentTarget[c]: led['current'][c] = max(currentTarget[c], int((led['current'][c] + 1) * 0.75))
+          elif led['current'][c] < currentTarget[c]: led['current'][c] = min(currentTarget[c], int((led['current'][c] + 1) * 1.15))
+          elif led['current'][c] > currentTarget[c]:
+            led['current'][c] = max(currentTarget[c], int((led['current'][c] + 1) * 0.85))
+
+            # Handle edge case with multiplication of 3 + 1 * 0.75 = 3, never actually fades
+            if led['current'][c] == led['previous'][c] and led['current'][c] > currentTarget[c]:
+              led['current'][c] -= 1
+
           # elif led['current'][c] < currentTarget[c]: led['current'][c] += Config.FADE_SPEED
           # elif led['current'][c] > currentTarget[c]: led['current'][c] -= Config.FADE_SPEED
 
