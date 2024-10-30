@@ -27,12 +27,12 @@ mainMenu = [
   MenuItem('Settings', items=[
     MenuItem('Color Palette', lambda value: Config.updatePalette(value), value=lambda: Config.CURRENT_PALETTE, options=list(Palette), icon=Icons['color']),
     MenuItem('Play Mode', lambda value: Config.updateValue('PLAY_MODE', value), value=lambda: Config.PLAY_MODE, options=list(PlayMode), icon=Icons['light']),
-    MenuItem('Music LED Override', lambda value: Config.updateValue('MUSIC_PLAYING_OVERRIDE', not value), value=lambda: Config.MUSIC_PLAYING_OVERRIDE),
     MenuItem('Ambient', items=[
       MenuItem('Ambient Mode', lambda value: Config.updateValue('AMBIENT_MODE', value), value=lambda: Config.AMBIENT_MODE, options=list(AmbientMode)),
       MenuItem('Ambient Enabled', lambda value: Config.updateValue('AMBIENT_ENABLED', not value), value=lambda: Config.AMBIENT_ENABLED),
       MenuItem('Night Mode', lambda value: Config.updateValue('NIGHT_MODE_ENABLED', not value), value=lambda: Config.NIGHT_MODE_ENABLED),
       MenuItem('Night Mode Timeout', lambda value: Config.updateValue('NIGHT_MODE_TIMEOUT', value), value=lambda: Config.NIGHT_MODE_TIMEOUT, options=[10, 20, 30, 60], icon=Icons['clock']),
+      MenuItem('Music Playing Override', lambda value: Config.updateValue('MUSIC_PLAYING_OVERRIDE', not value), value=lambda: Config.MUSIC_PLAYING_OVERRIDE),
       MenuItem('Cycle Speed', lambda value: Config.updateValue('CYCLE_SPEED', value), value=lambda: Config.CYCLE_SPEED, options=[0.05, 0.15, 0.2, 0.3, 0.75, 1, 2], icon=Icons['clock']),
     ], icon=Icons['ambient']),
     MenuItem('Display', items=[
