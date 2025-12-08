@@ -8,8 +8,9 @@
 void setup() {  
   if (DEBUG) Serial.begin(9600);
 
-  Wire.begin(I2C_ADDRESS);        // join i2c bus with address #8
-  Wire.onReceive(receiveEvent);   // register event
+  Wire.begin(I2C_ADDRESS);          // join i2c bus with address #8
+  Wire.setWireTimeout(3000, true);  // 3000us timeout, reset on timeout
+  Wire.onReceive(receiveEvent);     // register event
 }
 
 // function that executes whenever data is received from master on i2c
