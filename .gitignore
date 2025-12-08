@@ -3,3 +3,5 @@ midi/
 settings.json
 metadata.json
 values.py
+
+*.sf2

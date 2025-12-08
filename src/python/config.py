@@ -127,6 +127,8 @@ class Configuration:
     self.CHORDS_MAJOR = True # Major or minor chords
     self.CHORDS_NOTES = "" # Notes to display
 
+    self.FLUIDSYNTH_ENABLED = True
+
   def updatePalette(self, pal, save=True):
     self.CURRENT_PALETTE = pal
     self.PALETTE = Palettes.generatePalette(self.CURRENT_PALETTE.value, self.LED_COUNT)

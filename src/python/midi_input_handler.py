@@ -8,6 +8,7 @@ from config import Config, PlayMode
 from i2c import I2C
 from leds import Leds
 from palettes import Palettes
+from fluidsynth import FluidSynth
 import util
 
 class MidiInputHandler(object):
@@ -56,6 +57,10 @@ class MidiInputHandler(object):
         sendMessage.start()
 
       is_on = event == 0b1001 and velocity > 0
+
+      if Config.FLUIDSYNTH_ENABLED:
+        if is_on: FluidSynth.startNote(note, velocity)
+        else: FluidSynth.stopNote(note)
 
       # Handle Chord Mode
       if Config.CHORDS and Config.CHORDS_ENABLED:

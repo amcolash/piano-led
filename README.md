@@ -20,6 +20,7 @@ LEDs for my piano!
 - adafruit-circuitpython-ssd1306
 - jsonpickle
 - mido
+- pyfluidsynth
 - python-rtmidi
 - pytz
 - rpi_ws281x
