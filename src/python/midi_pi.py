@@ -5,7 +5,6 @@ import time
 from threading import Thread
 from math import floor
 
-from cal import Cal
 from config import Config
 from display import Display
 from i2c import I2C
