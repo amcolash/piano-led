@@ -61,7 +61,7 @@ class MidiPorts:
             cls.midi_out_piano.open_port(1)
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
             cls.updateVolume(1, 1)
-            # cls.updateLocalMode()
+            cls.updateLocalMode()
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:
