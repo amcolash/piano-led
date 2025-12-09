@@ -5,3 +5,5 @@ metadata.json
 values.py
 
 *.sf2
+*.sf3
+*.sfo
