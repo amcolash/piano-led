@@ -61,7 +61,7 @@ class MidiPorts:
             cls.midi_out_piano.open_port(1)
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
             cls.updateVolume(1, 1)
-            cls.updateLocalMode()
+            # cls.updateLocalMode()
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:
@@ -115,9 +115,10 @@ class MidiPorts:
   @classmethod
   def updateLocalMode(cls):
     if cls.pianoOn():
+      print('updating local mode:' + str(not Config.FLUIDSYNTH_ENABLED))
       try:
         cls.midi_lock.acquire()
-        cls.midi_out_piano.send_message([CONTROL_CHANGE, LOCAL_CONTROL, 0x7f if Config.FLUIDSYNTH_ENABLED else 0x00])
+        cls.midi_out_piano.send_message([CONTROL_CHANGE, LOCAL_CONTROL, 0x00 if Config.FLUIDSYNTH_ENABLED else 0x7f])
         cls.midi_lock.release()
       except:
         print(util.niceTime() + ': ' + str(sys.exc_info()))

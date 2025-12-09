@@ -42,7 +42,6 @@ class MidiPi:
     Config.update()
     Leds.updateLeds()
     Music.update()
-    # Cal.update()
     self.Display.update()
     updatePendingActions(self.Display)
 
@@ -69,12 +68,12 @@ class MidiPi:
     ps = pstats.Stats(profile)
     ps.print_stats()
 
-def fpsLogging(self):
-  self.updates += 1
-  if floor(time.time()) > floor(self.sec):
-    print("FPS: " + str(self.updates))
-    self.updates = 0
-    self.sec = time.time()
+  def fpsLogging(self):
+    self.updates += 1
+    if floor(time.time()) > floor(self.sec):
+      print("FPS: " + str(self.updates))
+      self.updates = 0
+      self.sec = time.time()
 
 if __name__ == "__main__":
   try:

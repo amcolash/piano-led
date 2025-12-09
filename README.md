@@ -20,13 +20,13 @@ LEDs for my piano!
 - adafruit-circuitpython-ssd1306
 - jsonpickle
 - mido
-- pyfluidsynth
+- pillow
 - python-rtmidi
 - pytz
 - rpi_ws281x
 - smbus2
-- pillow
+- tinysoundfont
 
 Install the dependencies as root using `sudo` Since this will likely be the only python program running on the pi, it should be fine.
 
-`sudo pip install --break-system-packages adafruit-circuitpython-ssd1306 jsonpickle mido python-rtmidi pytz rpi_ws281x smbus2 pillow`
+`sudo pip install --break-system-packages adafruit-circuitpython-ssd1306 jsonpickle mido pillow python-rtmidi pytz rpi_ws281x smbus2 tinysoundfont`

@@ -1,9 +1,10 @@
-import fluidsynth
+import tinysoundfont
 
 # This class is a singleton
 
-class FluidSynth:
-  synth = fluidsynth.Synth()
+class Synth:
+  synth = tinysoundfont.Synth()
+  synth.start("alsa")
   sfid = synth.sfload("Yamaha C5 Grand-v2.4.sf2")
   synth.program_select(0, sfid, 0, 0)
 
