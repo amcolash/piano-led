@@ -7,6 +7,7 @@ import time
 from config import Config
 from leds import Leds
 from midi_input_handler import MidiInputHandler
+from synth import Synth
 import util
 
 MAX_VOLUME = 16383
@@ -49,6 +50,7 @@ class MidiPorts:
             if Config.DEBUG_MIDI: print('Closing old port')
             cls.midi_in_piano.close_port()
             cls.midi_out_piano.close_port()
+            Synth.cleanup()
           else:
             if Config.DEBUG_MIDI: print('No Device')
         else:
@@ -62,6 +64,7 @@ class MidiPorts:
             cls.midi_out_piano.set_client_name('Piano MIDI Out')
             cls.updateVolume(1, 1)
             cls.updateLocalMode()
+            Synth.init()
           else:
             if Config.DEBUG_MIDI: print('MIDI Fine')
       except:

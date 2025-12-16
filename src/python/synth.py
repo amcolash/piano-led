@@ -1,26 +1,37 @@
 import fluidsynth
 import pathlib
 from config import Config
+import subprocess
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 SF2_PATH = str(SCRIPT_DIR / "Yamaha C5 Grand-v2.4.sf2")
 
 class Synth:
-  if Config.FLUIDSYNTH_ENABLED:
-    synth = fluidsynth.Synth()
-    sfid = synth.sfload(SF2_PATH)
-    synth.program_select(0, sfid, 0, 0)
+  sfid = None
+  synth = None
 
-    # Reduce latency
-    synth.setting("audio.period-size", 64)
-    synth.setting("audio.periods", 3)
-    synth.setting("synth.chorus.active", False)
-    synth.setting("synth.reverb.active", False)
+  @classmethod
+  def init(cls):
+    if Config.FLUIDSYNTH_ENABLED:
+      print("Initializing FluidSynth")
 
-    # Increase default gain
-    synth.setting("synth.gain", 1.0)
+      if cls.synth:
+        cls.cleanup()
 
-    synth.start(driver='alsa')
+      cls.synth = fluidsynth.Synth()
+      cls.sfid = cls.synth.sfload(SF2_PATH)
+      cls.synth.program_select(0, cls.sfid, 0, 0)
+
+      # Reduce latency
+      cls.synth.setting("audio.period-size", 64)
+      cls.synth.setting("audio.periods", 3)
+      cls.synth.setting("synth.chorus.active", False)
+      cls.synth.setting("synth.reverb.active", False)
+
+      # Increase default gain
+      cls.synth.setting("synth.gain", 1.0)
+
+      cls.synth.start(driver='alsa')
 
   @classmethod
   def startNote(cls, note, velocity):
@@ -32,4 +43,17 @@ class Synth:
 
   @classmethod
   def cleanup(cls):
-    cls.synth.delete()
+    if cls.synth:
+      print("Cleaning up FluidSynth")
+      if cls.sfid is not None:
+        cls.synth.sfunload(cls.sfid)
+
+      cls.synth.delete()
+      cls.synth = None
+      cls.sfid = None
+
+      # Force any lingering ALSA processes to be stopped
+      try:
+        subprocess.run(['sudo', 'fuser', '-k', '/dev/snd/*'], capture_output=True)
+      except:
+        pass
