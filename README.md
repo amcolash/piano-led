@@ -21,11 +21,11 @@ LEDs for my piano!
 - jsonpickle
 - mido
 - pillow
+- pyfluidsynth
 - python-rtmidi
 - pytz
 - rpi_ws281x
 - smbus2
-- tinysoundfont
 
 Install the dependencies as root using `sudo` Since this will likely be the only python program running on the pi, it should be fine.
 
